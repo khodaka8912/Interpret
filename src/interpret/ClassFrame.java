@@ -162,8 +162,12 @@ public class ClassFrame extends SubFrame implements DialogListener {
 				Constructor<?> constructor = constructorList.getSelectedConstructor();
 				Object[] arguments = argumentsTable.getValues();
 				Object object = ReflectUtils.construct(constructor, arguments);
+				if (isRootFrame) {
 				ObjectFrame objectViewer = new ObjectFrame(object, ClassFrame.this);
 				objectViewer.setVisible(true);
+				} else {
+					onReturn(object);
+				}
 			} catch (Throwable e) {
 				JOptionPane.showMessageDialog(ClassFrame.this, e.toString());
 			}

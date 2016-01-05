@@ -25,7 +25,6 @@ public class ObjectFrame extends SubFrame {
 	private final Object object;
 
 	private final JPanel methodPanel = new JPanel();
-	private final JTextField filterTextField = new JTextField();
 	private final JSplitPane methodSplitPane = new JSplitPane();
 	private final JScrollPane methodListScrollPane = new JScrollPane();
 	private final MethodList methodList = new MethodList();
@@ -38,10 +37,6 @@ public class ObjectFrame extends SubFrame {
 	private final FieldTable fieldsTable = new FieldTable();
 
 	private final JPanel buttonPanel = new JPanel();
-	private final JButton cancelButton = new JButton("Cancel");
-	private final JButton returnNullButton = new JButton("Return null");
-	private final JButton returnInstanceButton = new JButton("Return instance");
-
 	private final JSplitPane mainSplitPane = new JSplitPane();
 
 	public ObjectFrame(Object object, DialogListener dialogListener) {
@@ -59,23 +54,6 @@ public class ObjectFrame extends SubFrame {
 			}
 		});
 	}
-
-	private final DocumentListener filterTextChangedListener = new DocumentListener() {
-		@Override
-		public void insertUpdate(DocumentEvent documentEvent) {
-			methodList.setFilterText(filterTextField.getText());
-		}
-
-		@Override
-		public void removeUpdate(DocumentEvent documentEvent) {
-			methodList.setFilterText(filterTextField.getText());
-		}
-
-		@Override
-		public void changedUpdate(DocumentEvent documentEvent) {
-
-		}
-	};
 
 	private final MethodChangedListener methodChangedListener = new MethodChangedListener() {
 		@Override
@@ -106,35 +84,9 @@ public class ObjectFrame extends SubFrame {
 			}
 		}
 	};
-
-	private final ActionListener cancelButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent actionEvent) {
-			onCancel();
-		}
-	};
-
-	private final ActionListener returnNullButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent actionEvent) {
-			onReturn(null);
-		}
-	};
-
-	private final ActionListener returnInstanceButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent actionEvent) {
-			onReturn(object);
-		}
-	};
-
 	private void setupListener() {
-		filterTextField.getDocument().addDocumentListener(filterTextChangedListener);
 		methodList.addMethodChangedListener(methodChangedListener);
 		invokeButton.addActionListener(invokeButtonListener);
-		cancelButton.addActionListener(cancelButtonListener);
-		returnNullButton.addActionListener(returnNullButtonListener);
-		returnInstanceButton.addActionListener(returnInstanceButtonListener);
 	}
 
 	private void setupLayout() {
@@ -154,7 +106,6 @@ public class ObjectFrame extends SubFrame {
 		// Setup Method Panel layout
 		methodPanel.setBorder(BorderFactory.createTitledBorder("Method(s)"));
 		methodPanel.setLayout(new BorderLayout());
-		methodPanel.add(BorderLayout.NORTH, filterTextField);
 		methodPanel.add(BorderLayout.CENTER, methodSplitPane);
 		methodPanel.add(BorderLayout.SOUTH, invokeButton);
 		methodSplitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
@@ -170,9 +121,6 @@ public class ObjectFrame extends SubFrame {
 		fieldsTableScrollPane.setViewportView(fieldsTable);
 
 		buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(cancelButton);
-		buttonPanel.add(returnNullButton);
-		buttonPanel.add(returnInstanceButton);
 
 		// Locate JFrame to center of screen
 		setLocationRelativeTo(null); // Should be called after setup layout

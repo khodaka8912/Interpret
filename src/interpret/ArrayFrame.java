@@ -68,15 +68,10 @@ public class ArrayFrame extends SubFrame {
 		returnArrayButton.addActionListener(returnArrayButtonListener);
 	}
 
-	// Setup layout
-
 	private void setupLayout() {
-
-		// Setup Frame
 		setTitle(array.getClass().getCanonicalName());
-		setSize(800, 600);
+		setSize(900, 600);
 
-		// Setup whole layout
 		setLayout(new BorderLayout());
 		getContentPane().add(BorderLayout.CENTER, arraysTableScrollPane);
 		getContentPane().add(BorderLayout.SOUTH, buttonPanel);
