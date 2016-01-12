@@ -1,11 +1,11 @@
 package interpret;
 
-public class TypeValuePair implements Cloneable {
+public class TypedValue implements Cloneable {
 
 	private Class<?> type;
 	private Object value;
 
-	public TypeValuePair(Class<?> type, Object value) {
+	public TypedValue(Class<?> type, Object value) {
 		this.type = type;
 		this.value = value;
 	}
@@ -27,9 +27,9 @@ public class TypeValuePair implements Cloneable {
 	}
 
 	@Override
-	public TypeValuePair clone() {
+	public TypedValue clone() {
 		try {
-			return (TypeValuePair) super.clone();
+			return (TypedValue) super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new AssertionError("Clone is supported.");
 		}
@@ -37,11 +37,11 @@ public class TypeValuePair implements Cloneable {
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof TypeValuePair) {
+		if (other instanceof TypedValue) {
 			return false;
 		}
 
-		TypeValuePair typeValuePair = (TypeValuePair) other;
+		TypedValue typeValuePair = (TypedValue) other;
 		return type.equals(typeValuePair.type) && value.equals(typeValuePair.value);
 	}
 

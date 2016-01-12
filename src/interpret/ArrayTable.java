@@ -17,8 +17,8 @@ public class ArrayTable extends JTable {
 	public ArrayTable() {
 		setModel(new ArraysTableModel());
 		getColumn(COLUMN_NAMES[0]).setCellRenderer(new IndexColumnRenderer());
-		getColumn(COLUMN_NAMES[1]).setCellRenderer(new ValueCell());
-		getColumn(COLUMN_NAMES[1]).setCellEditor(new ValueCell());
+		getColumn(COLUMN_NAMES[1]).setCellRenderer(new ObjectCellEditor());
+		getColumn(COLUMN_NAMES[1]).setCellEditor(new ObjectCellEditor());
 	}
 
 	public void setArray(Object[] array) {
@@ -94,7 +94,7 @@ public class ArrayTable extends JTable {
 			case 0:
 				break;
 			case 1:
-				array[i] = ((TypeValuePair) value).getValue();
+				array[i] = ((TypedValue) value).getValue();
 				break;
 			default:
 				throw new AssertionError("");
@@ -107,7 +107,7 @@ public class ArrayTable extends JTable {
 			case 0:
 				return i;
 			case 1:
-				return new TypeValuePair(array.getClass().getComponentType(), array[i]);
+				return new TypedValue(array.getClass().getComponentType(), array[i]);
 			default:
 				throw new AssertionError("");
 			}

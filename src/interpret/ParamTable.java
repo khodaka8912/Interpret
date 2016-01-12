@@ -21,7 +21,7 @@ public class ParamTable extends JTable {
 	public ParamTable() {
 		setModel(new ArgumentTableModel());
 		getColumn(columnNames[0]).setCellRenderer(new ClassColumnRenderer());
-		ValueCell valueCell = new ValueCell();
+		ObjectCellEditor valueCell = new ObjectCellEditor();
 		getColumn(columnNames[1]).setCellRenderer(valueCell);
 		getColumn(columnNames[1]).setCellEditor(valueCell);
 	}
@@ -104,7 +104,7 @@ public class ParamTable extends JTable {
 			case 0:
 				break;
 			case 1:
-				params[i] = ((TypeValuePair) value).getValue();
+				params[i] = ((TypedValue) value).getValue();
 				break;
 			default:
 				throw new AssertionError("");
@@ -117,7 +117,7 @@ public class ParamTable extends JTable {
 			case 0:
 				return types[i];
 			case 1:
-				return new TypeValuePair(types[i], params[i]);
+				return new TypedValue(types[i], params[i]);
 			default:
 				throw new AssertionError("");
 			}
@@ -128,7 +128,8 @@ public class ParamTable extends JTable {
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 				int i, int j) {
-			return new JLabel(((Class<?>) value).getCanonicalName());
+			return new JLabel(((Class<?>) value).getCanonicalName().replaceAll("java\\.lang\\.", ""));
 		}
 	}
+
 }

@@ -20,8 +20,7 @@ public class MethodList extends JList<Method> {
 
 	private Class<?> cls;
 	private Method[] methods = new Method[0];
-	private Method[] filteredMethods = new Method[0];
-	private final Set<MethodChangedListener> listeners = new HashSet<MethodChangedListener>();
+	private final Set<MethodChangedListener> listeners = new HashSet<>();
 
 	public MethodList() {
 		setModel(new MethodListModel());
@@ -32,25 +31,18 @@ public class MethodList extends JList<Method> {
 			public void valueChanged(ListSelectionEvent listSelectionEvent) {
 				for (MethodChangedListener listener : listeners) {
 					int i = getSelectedIndex();
-					listener.onChange(i == -1 ? null : filteredMethods[i]);
+					listener.onChange(i == -1 ? null : methods[i]);
 				}
 			}
 		});
 	}
 
-	public Class<?> getClass_() {
-		return cls;
-	}
-
-	public void setClass(Class<?> class_) {
-		if (class_ == null) {
+	public void setClass(Class<?> cls) {
+		if (cls == null) {
 			methods = new Method[0];
 		} else {
-			methods = class_.getMethods();
+			methods = cls.getMethods();
 		}
-
-		filteredMethods = methods;
-
 		updateUI();
 	}
 
@@ -59,32 +51,15 @@ public class MethodList extends JList<Method> {
 		if (i == -1) {
 			return null;
 		} else {
-			return filteredMethods[i];
+			return methods[i];
 		}
 	}
 
-	public void setFilterText(String filterText) {
-		if (filterText.equals("")) {
-			filteredMethods = methods;
-		} else {
-			List<Method> filteredMethodList = new ArrayList<Method>();
-			for (Method method : methods) {
-				if (method.getName().indexOf(filterText) != -1) {
-					filteredMethodList.add(method);
-				}
-			}
-			filteredMethods = filteredMethodList.toArray(new Method[0]);
-		}
-
-		clearSelection();
-		updateUI();
-	}
-
-	public boolean addMethodChangedListener(MethodChangedListener listener) {
+	public boolean addListener(MethodChangedListener listener) {
 		return listeners.add(listener);
 	}
 
-	public boolean removeMethodChangedListener(MethodChangedListener listener) {
+	public boolean removeListener(MethodChangedListener listener) {
 		return listeners.remove(listener);
 	}
 
@@ -96,16 +71,16 @@ public class MethodList extends JList<Method> {
 
 		@Override
 		public int getSize() {
-			if (filteredMethods.length == 0) {
+			if (methods.length == 0) {
 				clearSelection();
 			}
 
-			return filteredMethods.length;
+			return methods.length;
 		}
 
 		@Override
 		public Method getElementAt(int i) {
-			return filteredMethods[i];
+			return methods[i];
 		}
 	}
 
@@ -114,7 +89,7 @@ public class MethodList extends JList<Method> {
 		@Override
 		public Component getListCellRendererComponent(JList<? extends Method> list, Method value, int index,
 				boolean isSelected, boolean hasFocus) {
-			String str = filteredMethods[index].toString().replaceAll("java\\.lang\\.", "");
+			String str = methods[index].toString().replaceAll("java\\.lang\\.", "");
 			if (cls != null) {
 				System.out.println(cls.getCanonicalName());
 				str = str.replaceAll(cls.getCanonicalName() + "\\.", "");

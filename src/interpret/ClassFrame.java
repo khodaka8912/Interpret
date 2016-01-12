@@ -12,6 +12,8 @@ import java.lang.reflect.Constructor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -21,46 +23,45 @@ import javax.swing.SpinnerNumberModel;
 
 import interpret.ClassNameField.ClassChangedListener;
 import interpret.ConstructorList.ConstructorChangedListener;
+import interpret.CreatedObjectList.ObjectChangedListener;
 
 @SuppressWarnings("serial")
-public class ClassFrame extends SubFrame implements DialogListener {
-
-	private final boolean isRootFrame;
+public class ClassFrame extends JFrame {
 
 	private final JPanel topGroup = new JPanel();
 	private final JPanel classNamePanel = new JPanel();
 	private final ClassNameField classNameField = new ClassNameField();
+	private final JButton showConstructorButton = new JButton("Show constructors");
 	private final JPanel arrayPanel = new JPanel();
 	private final JSpinner arrayLengthSpinner = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
+	private final JButton createArrayButton = new JButton("Create Array");
 
-	private final JSplitPane mainSplit = new JSplitPane();
-	private final JScrollPane constructorListScrollPane = new JScrollPane();
+	private final JPanel mainPanel = new JPanel();
+	private final JScrollPane constructorListPane = new JScrollPane();
 	private final JPanel constructorListPanel = new JPanel();
 	private final ConstructorList constructorList = new ConstructorList();
-	private final JPanel argumentsTablePanel = new JPanel();
-	private final JScrollPane argumentsTableScrollPane = new JScrollPane();
-	private final ParamTable argumentsTable = new ParamTable();
+	private final JPanel paramTablePanel = new JPanel();
+	private final JScrollPane paramTablePane = new JScrollPane();
+	private final ParamTable paramTable = new ParamTable();
 
-	private final JPanel buttonPanel = new JPanel();
-	private final JButton cancelButton = new JButton("Cancel");
-	private final JButton returnNullButton = new JButton("Return null");
-	private final JButton constructArrayButton = new JButton("Construct Array");
-	private final JButton constructButton = new JButton("Construct Object");
+	private final JPanel createdListPanel = new JPanel();
+	private final JScrollPane createdListPane = new JScrollPane();
+	private final CreatedObjectList createdList = new CreatedObjectList();
+	//	private final JButton cancelButton = new JButton("Cancel");
+	//	private final JButton resetButton = new JButton("Reset");
+	private final JButton constructButton = new JButton("Create instance");
+	private final JButton showObjectButton = new JButton("Show object");
 
 	public ClassFrame() {
-		this(null, null);
+		this(null);
 	}
 
-	public ClassFrame(Class<?> type, DialogListener dialogListener) {
-		super(dialogListener);
+	public ClassFrame(Class<?> type) {
 
 		if (type != null && type.isEnum()) {
 			throw new IllegalArgumentException("type must not be enum type");
 		}
 
-		isRootFrame = (dialogListener == null);
-		cancelButton.setVisible(!isRootFrame);
-		returnNullButton.setVisible(!isRootFrame);
 
 		setupLayout();
 		setupListener();
@@ -71,7 +72,6 @@ public class ClassFrame extends SubFrame implements DialogListener {
 				constructButton.setVisible(false);
 			} else {
 				arrayPanel.setVisible(false);
-				constructArrayButton.setVisible(false);
 			}
 
 			classNameField.setText(type.getCanonicalName());
@@ -81,38 +81,16 @@ public class ClassFrame extends SubFrame implements DialogListener {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent windowEvent) {
-				if (isRootFrame) {
 					System.exit(0);
-				} else {
-					onCancel();
-				}
 			}
 		});
 	}
 
-	@Override
-	public void onSubFrameReturn(Object value) {
-		if (isRootFrame) {
-			setVisible(true);
-		} else {
-			onReturn(value);
-		}
-	}
-
-	@Override
-	public void onSubFrameCancel() {
-		if (isRootFrame) {
-			setVisible(true);
-		} else {
-			onCancel();
-		}
-	}
 
 	private final ClassChangedListener classChangedListener = new ClassChangedListener() {
 		@Override
 		public void onChange(Class<?> class_) {
 			constructorList.setClass(class_);
-			constructArrayButton.setEnabled(class_ != null);
 			constructButton.setEnabled(false);
 		}
 	};
@@ -120,33 +98,33 @@ public class ClassFrame extends SubFrame implements DialogListener {
 	private final ConstructorChangedListener constructorChangedListener = new ConstructorChangedListener() {
 		@Override
 		public void onChange(Constructor<?> constructor) {
-			argumentsTable.setClass(constructor == null ? null : constructor.getParameterTypes());
+			paramTable.setClass(constructor == null ? null : constructor.getParameterTypes());
 			constructButton.setEnabled(constructor != null);
 		}
 	};
 
-	private final ActionListener cancelButtonListener = new ActionListener() {
+
+
+	private final ActionListener showConstructorButtonListener = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent actionEvent) {
-			onCancel();
+			classNameField.updateClass();
 		}
 	};
 
-	private final ActionListener returnNullButtonListener = new ActionListener() {
+	private final ActionListener createArrayButtonListener = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent actionEvent) {
-			onReturn(null);
-		}
-	};
-
-	private final ActionListener constructArrayButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent actionEvent) {
+			classNameField.updateClass();
 			try {
 				Class<?> cls = classNameField.getClassObject();
+				if (cls == null) {
+					JOptionPane.showMessageDialog(ClassFrame.this, "Class not found.");	
+					return;
+				}
 				int length = Integer.parseInt(arrayLengthSpinner.getValue().toString());
 				Object[] array = (Object[]) Array.newInstance(cls, length);
-				ArrayFrame arrayViewer = new ArrayFrame(array, ClassFrame.this);
+				ArrayFrame arrayViewer = new ArrayFrame(array);
 				setVisible(false);
 				arrayViewer.setVisible(true);
 			} catch (NumberFormatException e) {
@@ -160,14 +138,9 @@ public class ClassFrame extends SubFrame implements DialogListener {
 		public void actionPerformed(ActionEvent actionEvent) {
 			try {
 				Constructor<?> constructor = constructorList.getSelectedConstructor();
-				Object[] arguments = argumentsTable.getValues();
+				Object[] arguments = paramTable.getValues();
 				Object object = ReflectUtils.construct(constructor, arguments);
-				if (isRootFrame) {
-				ObjectFrame objectViewer = new ObjectFrame(object, ClassFrame.this);
-				objectViewer.setVisible(true);
-				} else {
-					onReturn(object);
-				}
+				createdList.addObject(object);
 			} catch (Throwable e) {
 				JOptionPane.showMessageDialog(ClassFrame.this, e.toString());
 			}
@@ -177,66 +150,95 @@ public class ClassFrame extends SubFrame implements DialogListener {
 	private void setupListener() {
 		classNameField.addClassChangedListener(classChangedListener);
 		constructorList.addConstructorChangedListener(constructorChangedListener);
-		cancelButton.addActionListener(cancelButtonListener);
-		returnNullButton.addActionListener(returnNullButtonListener);
-		constructArrayButton.addActionListener(constructArrayButtonListener);
+		createdList.addListener(objectChangedListener);
 		constructButton.addActionListener(constructButtonListener);
+		showConstructorButton.addActionListener(showConstructorButtonListener);
+		showObjectButton.addActionListener(showObjectButtonListener);
+		createArrayButton.addActionListener(createArrayButtonListener);
 	}
 
-	// Setup layout
 
 	private void setupLayout() {
-		// Setup Frame
-		setTitle("ClassFrame");
+		setTitle("Interpret");
 		setSize(800, 600);
 
-		// Setup whole layout
 		setLayout(new BorderLayout());
 		getContentPane().add(BorderLayout.NORTH, topGroup);
-		getContentPane().add(BorderLayout.CENTER, mainSplit);
-		getContentPane().add(BorderLayout.SOUTH, buttonPanel);
+		getContentPane().add(BorderLayout.CENTER, mainPanel);
+//		getContentPane().add(BorderLayout.SOUTH, createdListPanel);
 
-		// Setup North area layout
-		topGroup.setLayout(new BorderLayout());
-		topGroup.add(BorderLayout.CENTER, classNamePanel);
-		topGroup.add(BorderLayout.EAST, arrayPanel);
+		//		topGroup.setLayout(new BorderLayout());
+		topGroup.add(classNamePanel);
+		topGroup.add(arrayPanel);
 
 		// Setup Class Name area layout
-		classNamePanel.setBorder(BorderFactory.createTitledBorder("Class Name"));
-		classNamePanel.setLayout(new GridLayout(1, 1));
-		classNamePanel.add(classNameField);
+		classNamePanel.setLayout(new GridLayout(2, 1));
+		classNamePanel.add(new JLabel("Input class name(java.lang. can be omitted)."));
+		JPanel classNameInnerPanel = new JPanel();
+		classNameInnerPanel.setLayout(new GridLayout(1, 2));
+		classNameInnerPanel.add(classNameField);
+		classNameInnerPanel.add(showConstructorButton);
+		classNamePanel.add(classNameInnerPanel);
 
-		// Setup Array Length area layout
-		arrayPanel.setBorder(BorderFactory.createTitledBorder("Array Length"));
-		arrayPanel.setLayout(new GridLayout(1, 1));
-		arrayPanel.add(arrayLengthSpinner);
+		arrayPanel.setLayout(new GridLayout(2, 1));
+		arrayPanel.add(new JLabel("Create array using inputed class."));
+		JPanel arrayInnerPanel = new JPanel();
+		arrayInnerPanel.setLayout(new GridLayout(1, 3));
+		arrayInnerPanel.add(new JLabel("length"));
+		arrayInnerPanel.add(arrayLengthSpinner);
+		arrayInnerPanel.add(createArrayButton);
+		arrayPanel.add(arrayInnerPanel);
 
-		// Setup Center area layout
-		mainSplit.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
-		mainSplit.setDividerLocation(400);
-		mainSplit.setTopComponent(constructorListPanel);
-		mainSplit.setBottomComponent(argumentsTablePanel);
+		mainPanel.setLayout(new GridLayout(2, 1));
+		JPanel constructorPanel = new JPanel();
+		constructorPanel.setLayout(new GridLayout(1, 2));
+		constructorPanel.add(constructorListPanel);
+		constructorPanel.add(paramTablePanel);
+		mainPanel.add(constructorPanel);
+		mainPanel.add(createdListPanel);
 
-		// Setup Constructor List layout
-		constructorListPanel.setBorder(BorderFactory.createTitledBorder("Constructors"));
 		constructorListPanel.setLayout(new BorderLayout());
-		constructorListPanel.add(BorderLayout.CENTER, constructorListScrollPane);
-		constructorListScrollPane.setViewportView(constructorList);
+		constructorListPanel.add(BorderLayout.NORTH, new JLabel("Constructor(s)"));
+		constructorListPanel.add(BorderLayout.CENTER, constructorListPane);
+		constructorListPane.setViewportView(constructorList);
 
-		// Setup Argument Table Layout
-		argumentsTablePanel.setBorder(BorderFactory.createTitledBorder("Arguments"));
-		argumentsTablePanel.setLayout(new BorderLayout());
-		argumentsTablePanel.add(BorderLayout.CENTER, argumentsTableScrollPane);
-		argumentsTableScrollPane.setViewportView(argumentsTable);
+		paramTablePanel.setLayout(new BorderLayout());
+		paramTablePanel.add(BorderLayout.NORTH, new JLabel("Constructor Param(s)"));
+		paramTablePanel.add(BorderLayout.CENTER, paramTablePane);
+		paramTablePanel.add(BorderLayout.SOUTH, constructButton);
+		paramTablePane.setViewportView(paramTable);
 
-		// Setup Button area layout
-		buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(cancelButton);
-		buttonPanel.add(returnNullButton);
-		buttonPanel.add(constructArrayButton);
-		buttonPanel.add(constructButton);
+		createdListPanel.setLayout(new BorderLayout());
+		createdListPanel.add(BorderLayout.NORTH, new JLabel("Created Object(s)"));
+		createdListPanel.add(BorderLayout.CENTER, createdListPane);
+		createdListPanel.add(BorderLayout.SOUTH, showObjectButton);
+		createdListPane.setViewportView(createdList);
 
-		// Locate JFrame to center of screen
 		setLocationRelativeTo(null);
 	}
+	
+	private Object selectedObject = null;
+
+	private ObjectChangedListener objectChangedListener = new ObjectChangedListener() {
+
+		@Override
+		public void onChange(Object object) {
+			selectedObject = object;
+			showObjectButton.setEnabled(object != null);
+		}
+	};
+	
+	private ActionListener showObjectButtonListener = new ActionListener() {
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+//			if (selectedObject.getClass().isArray()) {
+//				
+//			} else {
+			
+//			}
+			ObjectFrame objectViewer = new ObjectFrame(selectedObject);
+			objectViewer.setVisible(true);
+		}
+	};
 }

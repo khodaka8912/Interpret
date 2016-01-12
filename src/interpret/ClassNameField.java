@@ -13,23 +13,6 @@ public class ClassNameField extends JTextField {
 	private Class<?> lastClass;
 	private final Set<ClassChangedListener> listeners = new HashSet<ClassChangedListener>();
 
-	public ClassNameField() {
-		getDocument().addDocumentListener(new DocumentListener() {
-			@Override
-			public void insertUpdate(DocumentEvent documentEvent) {
-				onUpdate();
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent documentEvent) {
-				onUpdate();
-			}
-
-			@Override
-			public void changedUpdate(DocumentEvent documentEvent) {
-			}
-		});
-	}
 
 	public Class<?> getClassObject() {
 		String className = getText();
@@ -59,7 +42,7 @@ public class ClassNameField extends JTextField {
 		void onChange(Class<?> class_);
 	}
 
-	private void onUpdate() {
+	public void updateClass() {
 		Class<?> currentClass = getClassObject();
 		if (currentClass == lastClass) {
 			return;

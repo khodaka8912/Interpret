@@ -1,7 +1,11 @@
 package interpret;
 
+import interpret.SelectObjectFrame.SelectObjectListener;
+
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
@@ -18,7 +22,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 @SuppressWarnings("serial")
-public class ValueCell extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
+public class ObjectCellEditor extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
 
 	private Class<?> type;
 	private JComponent editor;
@@ -26,8 +30,8 @@ public class ValueCell extends AbstractCellEditor implements TableCellRenderer, 
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object typeValuePair, boolean isSelected,
 			boolean hasFocus, int row, int column) {
-		final Class<?> type = ((TypeValuePair) typeValuePair).getType();
-		final Object value = ((TypeValuePair) typeValuePair).getValue();
+		final Class<?> type = ((TypedValue) typeValuePair).getType();
+		final Object value = ((TypedValue) typeValuePair).getValue();
 
 		if (isNumberClass(type)) {
 			return new JLabel(String.valueOf(value));
@@ -42,17 +46,17 @@ public class ValueCell extends AbstractCellEditor implements TableCellRenderer, 
 		} else if (type.isEnum()) {
 			return new JLabel(String.valueOf(value));
 		} else if (type.isArray()) {
-			return new JButton(String.valueOf(value));
+			return new JButton(String.valueOf(value) + " ...");
 		} else {
-			return new JButton(String.valueOf(value));
+			return new JButton(String.valueOf(value) + " ...");
 		}
 	}
 
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object typeValuePair, boolean isSelected, int row,
 			int column) {
-		this.type = ((TypeValuePair) typeValuePair).getType();
-		final Object value = ((TypeValuePair) typeValuePair).getValue();
+		this.type = ((TypedValue) typeValuePair).getType();
+		final Object value = ((TypedValue) typeValuePair).getValue();
 
 		if (isNumberClass(type)) {
 			editor = new NumberSpinner((Class<? extends Number>) type, (Number) value);
@@ -71,15 +75,14 @@ public class ValueCell extends AbstractCellEditor implements TableCellRenderer, 
 			jEnumComboBox.addPopupMenuListener(popupMenuListener);
 			editor = jEnumComboBox;
 		} else if (type.isArray()) {
-			ObjectGenerateButton jObjectGenerateButton = new ObjectGenerateButton(type, value);
-			jObjectGenerateButton.addDialogListener(dialogListener);
-			editor = jObjectGenerateButton;
+			JButton selectObjectButton = new JButton(value == null ? "null" : value.getClass().getSimpleName() + "#" + value.hashCode() + " ...");
+			selectObjectButton.addActionListener(selectButtonListener);
+			editor = selectObjectButton;
 		} else {
-			ObjectGenerateButton jObjectGenerateButton = new ObjectGenerateButton(type, value);
-			jObjectGenerateButton.addDialogListener(dialogListener);
-			editor = jObjectGenerateButton;
+			JButton selectObjectButton = new JButton(value == null ? "null" : value.getClass().getSimpleName() + "#" + value.hashCode() + " ...");
+			selectObjectButton.addActionListener(selectButtonListener);
+			editor = selectObjectButton;
 		}
-
 		return editor;
 	}
 
@@ -97,12 +100,12 @@ public class ValueCell extends AbstractCellEditor implements TableCellRenderer, 
 		} else if (type.isEnum()) {
 			value = ((EnumComboBox) editor).getSelectedItem();
 		} else if (type.isArray()) {
-			value = ((ObjectGenerateButton) editor).getValue();
+			value = this.selectedValue;
 		} else {
-			value = ((ObjectGenerateButton) editor).getValue();
+			value = this.selectedValue;
 		}
 
-		return new TypeValuePair(type, value);
+		return new TypedValue(type, value);
 	}
 
 	private boolean isNumberClass(Class<?> type) {
@@ -135,15 +138,28 @@ public class ValueCell extends AbstractCellEditor implements TableCellRenderer, 
 		}
 	};
 
-	private DialogListener dialogListener = new DialogListener() {
+	private SelectObjectListener selectObjectListener = new SelectObjectListener() {
 		@Override
-		public void onSubFrameReturn(Object value) {
+		public void onSelect(Object value) {
+			selectedValue = value;
 			stopCellEditing();
 		}
 
 		@Override
-		public void onSubFrameCancel() {
+		public void onCancel() {
 			stopCellEditing();
 		}
 	};
+	
+	private ActionListener selectButtonListener = new ActionListener() {
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			SelectObjectFrame frame = new SelectObjectFrame();
+			frame.addListener(selectObjectListener);
+			frame.setVisible(true);
+		}
+	};
+	
+	private Object selectedValue;
 }

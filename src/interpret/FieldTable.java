@@ -2,8 +2,10 @@ package interpret;
 
 import java.awt.Component;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -11,17 +13,18 @@ import javax.swing.table.TableCellRenderer;
 @SuppressWarnings("serial")
 public class FieldTable extends JTable {
 
-	private static final String[] COLUMN_NAMES = new String[] { "Type", "Name", "Value" };
+	private static final String[] COLUMN_NAMES = { "Modifier", "Type", "Name", "Value" };
 
 	private Object object;
 	private Field[] fields = new Field[0];
 
 	public FieldTable() {
 		setModel(new ArgumentsTableModel());
-		getColumn(COLUMN_NAMES[0]).setCellRenderer(new TypeColumnRenderer());
-		getColumn(COLUMN_NAMES[1]).setCellRenderer(new NameColumnRenderer());
-		getColumn(COLUMN_NAMES[2]).setCellRenderer(new ValueCell());
-		getColumn(COLUMN_NAMES[2]).setCellEditor(new ValueCell());
+		getColumn(COLUMN_NAMES[0]).setCellRenderer(new ModifierColumnRenderer());
+		getColumn(COLUMN_NAMES[1]).setCellRenderer(new TypeColumnRenderer());
+		getColumn(COLUMN_NAMES[2]).setCellRenderer(new NameColumnRenderer());
+		getColumn(COLUMN_NAMES[3]).setCellRenderer(new ObjectCellEditor());
+		getColumn(COLUMN_NAMES[3]).setCellEditor(new ObjectCellEditor());
 	}
 
 	public void setObject(Object object) {
@@ -60,6 +63,8 @@ public class FieldTable extends JTable {
 			case 1:
 				return false;
 			case 2:
+				return false;
+			case 3:
 				return ReflectUtils.isSettableField(fields[i]);
 			default:
 				throw new AssertionError("");
@@ -70,14 +75,14 @@ public class FieldTable extends JTable {
 		public void setValueAt(Object value, int i, int j) {
 			switch (j) {
 			case 0:
-				break;
 			case 1:
-				break;
 			case 2:
+				break;
+			case 3:
 				try {
-					ReflectUtils.setField(object, fields[i], ((TypeValuePair) value).getValue());
+					ReflectUtils.setField(object, fields[i], ((TypedValue) value).getValue());
 				} catch (Throwable e) {
-					e.printStackTrace();
+					JOptionPane.showMessageDialog(FieldTable.this, e.getClass().getSimpleName() + ": " + e.getMessage());
 				}
 				break;
 			default:
@@ -89,12 +94,14 @@ public class FieldTable extends JTable {
 		public Object getValueAt(int i, int j) {
 			switch (j) {
 			case 0:
-				return fields[i].getType();
+				return Modifier.toString(fields[i].getModifiers());
 			case 1:
-				return fields[i].getName();
+				return fields[i].getType();
 			case 2:
+				return fields[i].getName();
+			case 3:
 				try {
-					return new TypeValuePair(fields[i].getType(), ReflectUtils.getField(object, fields[i]));
+					return new TypedValue(fields[i].getType(), ReflectUtils.getField(object, fields[i]));
 				} catch (Throwable e) {
 					e.printStackTrace();
 				}
@@ -117,6 +124,14 @@ public class FieldTable extends JTable {
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 				int i, int j) {
 			return new JLabel(fields[i].getName());
+		}
+	}
+	
+	private class ModifierColumnRenderer implements TableCellRenderer {
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int i, int j) {
+			return new JLabel(Modifier.toString(fields[i].getModifiers()));
 		}
 	}
 }

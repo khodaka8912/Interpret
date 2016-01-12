@@ -1,31 +1,28 @@
 package interpret;
 
+import interpret.MethodList.MethodChangedListener;
+
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.lang.reflect.Method;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-
-import interpret.MethodList.MethodChangedListener;
 
 @SuppressWarnings("serial")
-public class ObjectFrame extends SubFrame {
+public class ObjectFrame extends JFrame {
 	private final Object object;
 
 	private final JPanel methodPanel = new JPanel();
-	private final JSplitPane methodSplitPane = new JSplitPane();
+	private final JPanel methodInnerPanel = new JPanel();
 	private final JScrollPane methodListScrollPane = new JScrollPane();
 	private final MethodList methodList = new MethodList();
 	private final JScrollPane paramTableScrollPane = new JScrollPane();
@@ -39,20 +36,12 @@ public class ObjectFrame extends SubFrame {
 	private final JPanel buttonPanel = new JPanel();
 	private final JSplitPane mainSplitPane = new JSplitPane();
 
-	public ObjectFrame(Object object, DialogListener dialogListener) {
-		super(dialogListener);
+	public ObjectFrame(Object object) {
 		this.object = object;
 		methodList.setClass(object.getClass());
 		fieldsTable.setObject(object);
 		setupLayout();
 		setupListener();
-
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent windowEvent) {
-				onCancel();
-			}
-		});
 	}
 
 	private final MethodChangedListener methodChangedListener = new MethodChangedListener() {
@@ -85,12 +74,12 @@ public class ObjectFrame extends SubFrame {
 		}
 	};
 	private void setupListener() {
-		methodList.addMethodChangedListener(methodChangedListener);
+		methodList.addListener(methodChangedListener);
 		invokeButton.addActionListener(invokeButtonListener);
 	}
 
 	private void setupLayout() {
-		setTitle("Instance of " + object.getClass().getCanonicalName());
+		setTitle(object.toString());
 		setSize(900, 600);
 
 		setLayout(new BorderLayout());
@@ -104,25 +93,27 @@ public class ObjectFrame extends SubFrame {
 		mainSplitPane.setBottomComponent(fieldPanel);
 
 		// Setup Method Panel layout
-		methodPanel.setBorder(BorderFactory.createTitledBorder("Method(s)"));
 		methodPanel.setLayout(new BorderLayout());
-		methodPanel.add(BorderLayout.CENTER, methodSplitPane);
+		methodPanel.add(BorderLayout.NORTH, new JLabel("Method(s)"));
+		methodPanel.add(BorderLayout.CENTER, methodInnerPanel);
 		methodPanel.add(BorderLayout.SOUTH, invokeButton);
-		methodSplitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
-		methodSplitPane.setDividerLocation(500);
-		methodSplitPane.setTopComponent(methodListScrollPane);
+		methodInnerPanel.setLayout(new GridLayout(1, 2));
+		methodInnerPanel.add(methodListScrollPane);
 		methodListScrollPane.setViewportView(methodList);
-		methodSplitPane.setBottomComponent(paramTableScrollPane);
+		JPanel paramPanel = new JPanel();
+		paramPanel.setLayout(new BorderLayout());
+		paramPanel.add(BorderLayout.NORTH, new JLabel("Method Param(s)"));
+		paramPanel.add(BorderLayout.CENTER, paramTableScrollPane);
+		methodInnerPanel.add(paramPanel);
 		paramTableScrollPane.setViewportView(paramTable);
 
-		fieldPanel.setBorder(BorderFactory.createTitledBorder("Field"));
 		fieldPanel.setLayout(new BorderLayout());
+		fieldPanel.add(BorderLayout.NORTH, new JLabel("Field(s)"));
 		fieldPanel.add(BorderLayout.CENTER, fieldsTableScrollPane);
 		fieldsTableScrollPane.setViewportView(fieldsTable);
 
 		buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
-		// Locate JFrame to center of screen
-		setLocationRelativeTo(null); // Should be called after setup layout
+		setLocationRelativeTo(null); 
 	}
 }
