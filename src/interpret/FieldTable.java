@@ -1,6 +1,5 @@
 package interpret;
 
-import java.awt.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -8,7 +7,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
 
 @SuppressWarnings("serial")
 public class FieldTable extends JTable {
@@ -20,9 +18,12 @@ public class FieldTable extends JTable {
 
 	public FieldTable() {
 		setModel(new ArgumentsTableModel());
-		getColumn(COLUMN_NAMES[0]).setCellRenderer(new ModifierColumnRenderer());
-		getColumn(COLUMN_NAMES[1]).setCellRenderer(new TypeColumnRenderer());
-		getColumn(COLUMN_NAMES[2]).setCellRenderer(new NameColumnRenderer());
+		getColumn(COLUMN_NAMES[0]).setCellRenderer(
+				(table, value, isSelected, hasFocus, i, j) -> new JLabel(Modifier.toString(fields[i].getModifiers())));
+		getColumn(COLUMN_NAMES[1]).setCellRenderer(
+				(table, value, isSelected, hasFocus, i, j) -> new JLabel(fields[i].getType().getCanonicalName()));
+		getColumn(COLUMN_NAMES[2])
+				.setCellRenderer((table, value, isSelected, hasFocus, i, j) -> new JLabel(fields[i].getName()));
 		getColumn(COLUMN_NAMES[3]).setCellRenderer(new ObjectCellEditor());
 		getColumn(COLUMN_NAMES[3]).setCellEditor(new ObjectCellEditor());
 	}
@@ -34,7 +35,6 @@ public class FieldTable extends JTable {
 		} else {
 			fields = object.getClass().getDeclaredFields();
 		}
-
 		updateUI();
 	}
 
@@ -82,7 +82,8 @@ public class FieldTable extends JTable {
 				try {
 					ReflectUtils.setField(object, fields[i], ((TypedValue) value).getValue());
 				} catch (Throwable e) {
-					JOptionPane.showMessageDialog(FieldTable.this, e.getClass().getSimpleName() + ": " + e.getMessage());
+					JOptionPane.showMessageDialog(FieldTable.this,
+							e.getClass().getSimpleName() + ": " + e.getMessage());
 				}
 				break;
 			default:
@@ -108,30 +109,6 @@ public class FieldTable extends JTable {
 			default:
 				throw new AssertionError("");
 			}
-		}
-	}
-
-	private class TypeColumnRenderer implements TableCellRenderer {
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-				int i, int j) {
-			return new JLabel(fields[i].getType().getCanonicalName());
-		}
-	}
-
-	private class NameColumnRenderer implements TableCellRenderer {
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-				int i, int j) {
-			return new JLabel(fields[i].getName());
-		}
-	}
-	
-	private class ModifierColumnRenderer implements TableCellRenderer {
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-				int i, int j) {
-			return new JLabel(Modifier.toString(fields[i].getModifiers()));
 		}
 	}
 }

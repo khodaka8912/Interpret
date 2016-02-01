@@ -1,29 +1,22 @@
 package interpret;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 @SuppressWarnings("serial")
 public class ArrayFrame extends JFrame {
 
 	private final Object[] array;
+	private final JScrollPane arraysTableScrollPane = new JScrollPane();
+	private final ArrayTable arraysTable = new ArrayTable();
 
 	public ArrayFrame(Object[] array) {
 		this.array = array;
 		arraysTable.setArray(array);
 		setupLayout();
 	}
-
-	private final JScrollPane arraysTableScrollPane = new JScrollPane();
-	private final ArrayTable arraysTable = new ArrayTable();
-
-
-
 
 	private void setupLayout() {
 		setTitle(array.getClass().getCanonicalName());

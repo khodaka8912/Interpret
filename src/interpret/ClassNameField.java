@@ -4,15 +4,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 @SuppressWarnings("serial")
 public class ClassNameField extends JTextField {
 
 	private Class<?> lastClass;
 	private final Set<ClassChangedListener> listeners = new HashSet<ClassChangedListener>();
-
 
 	public Class<?> getClassObject() {
 		String className = getText();
@@ -47,9 +44,7 @@ public class ClassNameField extends JTextField {
 		if (currentClass == lastClass) {
 			return;
 		}
-
 		lastClass = currentClass;
-
 		for (ClassChangedListener listener : listeners) {
 			listener.onChange(currentClass);
 		}

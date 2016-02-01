@@ -1,7 +1,5 @@
 package interpret;
 
-import interpret.MethodList.MethodChangedListener;
-
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -16,6 +14,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+
+import interpret.MethodList.MethodChangedListener;
 
 @SuppressWarnings("serial")
 public class ObjectFrame extends JFrame {
@@ -73,13 +73,14 @@ public class ObjectFrame extends JFrame {
 			}
 		}
 	};
+
 	private void setupListener() {
 		methodList.addListener(methodChangedListener);
 		invokeButton.addActionListener(invokeButtonListener);
 	}
 
 	private void setupLayout() {
-		setTitle(object.toString());
+		setTitle(object.getClass().getSimpleName() + "#" + object.hashCode());
 		setSize(900, 600);
 
 		setLayout(new BorderLayout());
@@ -114,6 +115,6 @@ public class ObjectFrame extends JFrame {
 
 		buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
-		setLocationRelativeTo(null); 
+		setLocationRelativeTo(null);
 	}
 }

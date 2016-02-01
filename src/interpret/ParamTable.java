@@ -1,11 +1,8 @@
 package interpret;
 
-import java.awt.Component;
-
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
 
 @SuppressWarnings("serial")
 public class ParamTable extends JTable {
@@ -20,7 +17,9 @@ public class ParamTable extends JTable {
 
 	public ParamTable() {
 		setModel(new ArgumentTableModel());
-		getColumn(columnNames[0]).setCellRenderer(new ClassColumnRenderer());
+		getColumn(columnNames[0]).setCellRenderer((table, value, isSelected, hasFocus, i, j) -> {
+			return new JLabel(((Class<?>) value).getCanonicalName().replaceAll("java\\.lang\\.", ""));
+		});
 		ObjectCellEditor valueCell = new ObjectCellEditor();
 		getColumn(columnNames[1]).setCellRenderer(valueCell);
 		getColumn(columnNames[1]).setCellEditor(valueCell);
@@ -38,26 +37,20 @@ public class ParamTable extends JTable {
 		for (int i = 0; i < this.types.length; i++) {
 			if (types[i] == byte.class || types[i] == Byte.class) {
 				params[i] = (byte) 0;
-			} else if (types[i] == short.class || types[i] == Short.class) {
+			} else if (types[i] == short.class) {
 				params[i] = (short) 0;
-			} else if (types[i] == int.class || types[i] == Integer.class) {
+			} else if (types[i] == int.class) {
 				params[i] = 0;
-			} else if (types[i] == long.class || types[i] == Long.class) {
+			} else if (types[i] == long.class) {
 				params[i] = 0L;
-			} else if (types[i] == float.class || types[i] == Float.class) {
+			} else if (types[i] == float.class) {
 				params[i] = (float) 0;
-			} else if (types[i] == double.class || types[i] == Double.class) {
+			} else if (types[i] == double.class) {
 				params[i] = (double) 0;
-			} else if (types[i] == char.class || types[i] == Character.class) {
+			} else if (types[i] == char.class) {
 				params[i] = ' ';
-			} else if (types[i] == boolean.class || types[i] == Boolean.class) {
+			} else if (types[i] == boolean.class) {
 				params[i] = false;
-			} else if (types[i] == String.class) {
-				params[i] = "";
-			} else if (types[i].isEnum()) {
-				params[i] = null;
-			} else if (types[i].isArray()) {
-				params[i] = null;
 			} else {
 				params[i] = null;
 			}
@@ -123,13 +116,4 @@ public class ParamTable extends JTable {
 			}
 		}
 	}
-
-	private class ClassColumnRenderer implements TableCellRenderer {
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-				int i, int j) {
-			return new JLabel(((Class<?>) value).getCanonicalName().replaceAll("java\\.lang\\.", ""));
-		}
-	}
-
 }

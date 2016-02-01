@@ -1,13 +1,7 @@
 package interpret;
 
-import interpret.SelectObjectFrame.SelectObjectListener;
-
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
@@ -21,11 +15,14 @@ import javax.swing.event.PopupMenuListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import interpret.SelectObjectFrame.SelectObjectListener;
+
 @SuppressWarnings("serial")
 public class ObjectCellEditor extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
 
 	private Class<?> type;
 	private JComponent editor;
+	private Object selectedValue;
 
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object typeValuePair, boolean isSelected,
@@ -35,14 +32,12 @@ public class ObjectCellEditor extends AbstractCellEditor implements TableCellRen
 
 		if (isNumberClass(type)) {
 			return new JLabel(String.valueOf(value));
-		} else if (type == char.class || type == Character.class) {
+		} else if (type == char.class) {
 			return new JLabel(String.valueOf(value));
-		} else if (type == boolean.class || type == Boolean.class) {
+		} else if (type == boolean.class) {
 			JCheckBox jCheckBox = new JCheckBox("true?");
 			jCheckBox.setSelected((Boolean) value);
 			return jCheckBox;
-		} else if (type == String.class) {
-			return new JLabel((String) value);
 		} else if (type.isEnum()) {
 			return new JLabel(String.valueOf(value));
 		} else if (type.isArray()) {
@@ -60,27 +55,51 @@ public class ObjectCellEditor extends AbstractCellEditor implements TableCellRen
 
 		if (isNumberClass(type)) {
 			editor = new NumberSpinner((Class<? extends Number>) type, (Number) value);
-		} else if (type == char.class || type == Character.class) {
+		} else if (type == char.class) {
 			editor = new JTextField(value == null ? "" : String.valueOf(value));
-		} else if (type == boolean.class || type == Boolean.class) {
+		} else if (type == boolean.class) {
 			JCheckBox jCheckBox = new JCheckBox();
 			jCheckBox.setSelected((Boolean) value);
 			jCheckBox.setBackground(Color.white);
-			jCheckBox.addItemListener(checkBoxListener);
+			jCheckBox.addItemListener((e) -> stopCellEditing());
 			editor = jCheckBox;
-		} else if (type == String.class) {
-			editor = new JTextField((String) value);
 		} else if (type.isEnum()) {
 			EnumComboBox jEnumComboBox = new EnumComboBox((Class<? extends Enum<?>>) type, (Enum<?>) value);
-			jEnumComboBox.addPopupMenuListener(popupMenuListener);
+			jEnumComboBox.addPopupMenuListener(new PopupMenuListener() {
+				@Override
+				public void popupMenuWillBecomeVisible(PopupMenuEvent popupMenuEvent) {
+				}
+
+				@Override
+				public void popupMenuWillBecomeInvisible(PopupMenuEvent popupMenuEvent) {
+					stopCellEditing();
+				}
+
+				@Override
+				public void popupMenuCanceled(PopupMenuEvent popupMenuEvent) {
+					stopCellEditing();
+				}
+			});
 			editor = jEnumComboBox;
-		} else if (type.isArray()) {
-			JButton selectObjectButton = new JButton(value == null ? "null" : value.getClass().getSimpleName() + "#" + value.hashCode() + " ...");
-			selectObjectButton.addActionListener(selectButtonListener);
-			editor = selectObjectButton;
 		} else {
-			JButton selectObjectButton = new JButton(value == null ? "null" : value.getClass().getSimpleName() + "#" + value.hashCode() + " ...");
-			selectObjectButton.addActionListener(selectButtonListener);
+			JButton selectObjectButton = new JButton(
+					value == null ? "null" : value.getClass().getSimpleName() + "#" + value.hashCode() + " ...");
+			selectObjectButton.addActionListener((e) -> {
+				SelectObjectFrame frame = new SelectObjectFrame();
+				frame.addListener(new SelectObjectListener() {
+					@Override
+					public void onSelect(Object value) {
+						selectedValue = value;
+						stopCellEditing();
+					}
+
+					@Override
+					public void onCancel() {
+						stopCellEditing();
+					}
+				});
+				frame.setVisible(true);
+			});
 			editor = selectObjectButton;
 		}
 		return editor;
@@ -109,57 +128,7 @@ public class ObjectCellEditor extends AbstractCellEditor implements TableCellRen
 	}
 
 	private boolean isNumberClass(Class<?> type) {
-		return type == byte.class || type == Byte.class || type == short.class || type == Short.class
-				|| type == int.class || type == Integer.class || type == long.class || type == Long.class
-				|| type == float.class || type == Float.class || type == double.class || type == Double.class;
+		return type == byte.class || type == short.class || type == int.class || type == long.class
+				|| type == float.class || type == double.class;
 	}
-
-	private ItemListener checkBoxListener = new ItemListener() {
-		@Override
-		public void itemStateChanged(ItemEvent itemEvent) {
-			stopCellEditing();
-		}
-	};
-
-	private PopupMenuListener popupMenuListener = new PopupMenuListener() {
-		@Override
-		public void popupMenuWillBecomeVisible(PopupMenuEvent popupMenuEvent) {
-
-		}
-
-		@Override
-		public void popupMenuWillBecomeInvisible(PopupMenuEvent popupMenuEvent) {
-			stopCellEditing();
-		}
-
-		@Override
-		public void popupMenuCanceled(PopupMenuEvent popupMenuEvent) {
-			stopCellEditing();
-		}
-	};
-
-	private SelectObjectListener selectObjectListener = new SelectObjectListener() {
-		@Override
-		public void onSelect(Object value) {
-			selectedValue = value;
-			stopCellEditing();
-		}
-
-		@Override
-		public void onCancel() {
-			stopCellEditing();
-		}
-	};
-	
-	private ActionListener selectButtonListener = new ActionListener() {
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			SelectObjectFrame frame = new SelectObjectFrame();
-			frame.addListener(selectObjectListener);
-			frame.setVisible(true);
-		}
-	};
-	
-	private Object selectedValue;
 }

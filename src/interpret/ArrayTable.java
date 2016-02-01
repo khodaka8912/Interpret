@@ -1,11 +1,8 @@
 package interpret;
 
-import java.awt.Component;
-
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
 
 @SuppressWarnings("serial")
 public class ArrayTable extends JTable {
@@ -16,7 +13,8 @@ public class ArrayTable extends JTable {
 
 	public ArrayTable() {
 		setModel(new ArraysTableModel());
-		getColumn(COLUMN_NAMES[0]).setCellRenderer(new IndexColumnRenderer());
+		getColumn(COLUMN_NAMES[0])
+				.setCellRenderer((table, value, isSelected, hasFocus, i, j) -> new JLabel(String.valueOf(value)));
 		getColumn(COLUMN_NAMES[1]).setCellRenderer(new ObjectCellEditor());
 		getColumn(COLUMN_NAMES[1]).setCellEditor(new ObjectCellEditor());
 	}
@@ -56,8 +54,6 @@ public class ArrayTable extends JTable {
 
 		updateUI();
 	}
-
-	// Table Model
 
 	private class ArraysTableModel extends AbstractTableModel {
 
@@ -111,16 +107,6 @@ public class ArrayTable extends JTable {
 			default:
 				throw new AssertionError("");
 			}
-		}
-	}
-
-	// Table Cell Renderer
-
-	private class IndexColumnRenderer implements TableCellRenderer {
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-				int i, int j) {
-			return new JLabel(String.valueOf(value));
 		}
 	}
 }

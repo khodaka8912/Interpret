@@ -10,7 +10,6 @@ import java.awt.event.WindowEvent;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -18,7 +17,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
-import javax.swing.JSplitPane;
 import javax.swing.SpinnerNumberModel;
 
 import interpret.ClassNameField.ClassChangedListener;
@@ -47,45 +45,19 @@ public class ClassFrame extends JFrame {
 	private final JPanel createdListPanel = new JPanel();
 	private final JScrollPane createdListPane = new JScrollPane();
 	private final CreatedObjectList createdList = new CreatedObjectList();
-	//	private final JButton cancelButton = new JButton("Cancel");
-	//	private final JButton resetButton = new JButton("Reset");
 	private final JButton constructButton = new JButton("Create instance");
 	private final JButton showObjectButton = new JButton("Show object");
 
 	public ClassFrame() {
-		this(null);
-	}
-
-	public ClassFrame(Class<?> type) {
-
-		if (type != null && type.isEnum()) {
-			throw new IllegalArgumentException("type must not be enum type");
-		}
-
-
 		setupLayout();
 		setupListener();
-
-		if (type != null) {
-			if (type.isArray()) {
-				type = type.getComponentType();
-				constructButton.setVisible(false);
-			} else {
-				arrayPanel.setVisible(false);
-			}
-
-			classNameField.setText(type.getCanonicalName());
-			classChangedListener.onChange(type);
-		}
-
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent windowEvent) {
-					System.exit(0);
+				System.exit(0);
 			}
 		});
 	}
-
 
 	private final ClassChangedListener classChangedListener = new ClassChangedListener() {
 		@Override
@@ -103,8 +75,6 @@ public class ClassFrame extends JFrame {
 		}
 	};
 
-
-
 	private final ActionListener showConstructorButtonListener = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent actionEvent) {
@@ -119,14 +89,12 @@ public class ClassFrame extends JFrame {
 			try {
 				Class<?> cls = classNameField.getClassObject();
 				if (cls == null) {
-					JOptionPane.showMessageDialog(ClassFrame.this, "Class not found.");	
+					JOptionPane.showMessageDialog(ClassFrame.this, "Class not found.");
 					return;
 				}
 				int length = Integer.parseInt(arrayLengthSpinner.getValue().toString());
 				Object[] array = (Object[]) Array.newInstance(cls, length);
-				ArrayFrame arrayViewer = new ArrayFrame(array);
-				setVisible(false);
-				arrayViewer.setVisible(true);
+				createdList.addObject(array);
 			} catch (NumberFormatException e) {
 				JOptionPane.showMessageDialog(ClassFrame.this, "Invalid array length.");
 			}
@@ -157,7 +125,6 @@ public class ClassFrame extends JFrame {
 		createArrayButton.addActionListener(createArrayButtonListener);
 	}
 
-
 	private void setupLayout() {
 		setTitle("Interpret");
 		setSize(800, 600);
@@ -165,9 +132,9 @@ public class ClassFrame extends JFrame {
 		setLayout(new BorderLayout());
 		getContentPane().add(BorderLayout.NORTH, topGroup);
 		getContentPane().add(BorderLayout.CENTER, mainPanel);
-//		getContentPane().add(BorderLayout.SOUTH, createdListPanel);
+		// getContentPane().add(BorderLayout.SOUTH, createdListPanel);
 
-		//		topGroup.setLayout(new BorderLayout());
+		// topGroup.setLayout(new BorderLayout());
 		topGroup.add(classNamePanel);
 		topGroup.add(arrayPanel);
 
@@ -183,7 +150,7 @@ public class ClassFrame extends JFrame {
 		arrayPanel.setLayout(new GridLayout(2, 1));
 		arrayPanel.add(new JLabel("Create array using inputed class."));
 		JPanel arrayInnerPanel = new JPanel();
-		arrayInnerPanel.setLayout(new GridLayout(1, 3));
+		arrayInnerPanel.setLayout(new FlowLayout());
 		arrayInnerPanel.add(new JLabel("length"));
 		arrayInnerPanel.add(arrayLengthSpinner);
 		arrayInnerPanel.add(createArrayButton);
@@ -216,7 +183,7 @@ public class ClassFrame extends JFrame {
 
 		setLocationRelativeTo(null);
 	}
-	
+
 	private Object selectedObject = null;
 
 	private ObjectChangedListener objectChangedListener = new ObjectChangedListener() {
@@ -227,18 +194,18 @@ public class ClassFrame extends JFrame {
 			showObjectButton.setEnabled(object != null);
 		}
 	};
-	
+
 	private ActionListener showObjectButtonListener = new ActionListener() {
-		
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
-//			if (selectedObject.getClass().isArray()) {
-//				
-//			} else {
-			
-//			}
-			ObjectFrame objectViewer = new ObjectFrame(selectedObject);
-			objectViewer.setVisible(true);
+			if (selectedObject.getClass().isArray()) {
+				ArrayFrame arrayViewer = new ArrayFrame((Object[]) selectedObject);
+				arrayViewer.setVisible(true);
+			} else {
+				ObjectFrame objectViewer = new ObjectFrame(selectedObject);
+				objectViewer.setVisible(true);
+			}
 		}
 	};
 }
