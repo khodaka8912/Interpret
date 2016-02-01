@@ -38,7 +38,7 @@ public class MethodList extends JList<Method> {
 			String str = methods[index].toString().replaceAll("java\\.lang\\.", "");
 			if (cls != null) {
 				System.out.println(cls.getCanonicalName());
-				str = str.replaceAll(cls.getCanonicalName() + "\\.", "");
+				str = str.replaceAll(".+\\.", "");
 			}
 			JLabel label = new JLabel(str);
 			if (isSelected) {

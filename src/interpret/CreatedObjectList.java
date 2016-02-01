@@ -13,11 +13,15 @@ import javax.swing.JList;
 @SuppressWarnings("serial")
 public class CreatedObjectList extends JList<Object> {
 
-	List<Object> createdObjects;
+	private List<Object> createdObjects;
 	private final Set<ObjectChangedListener> listeners = new HashSet<>();
 
-	public CreatedObjectList(List<Object> createdObjects) {
-		this.createdObjects = createdObjects == null ? new ArrayList<>() : createdObjects;
+	public CreatedObjectList() {
+		this(null);
+	}
+
+	public CreatedObjectList(List<Object> objects) {
+		this.createdObjects = objects == null ? new ArrayList<>() : objects;
 		setModel(new AbstractListModel<Object>() {
 
 			@Override

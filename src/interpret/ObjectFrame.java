@@ -1,10 +1,7 @@
 package interpret;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.reflect.Method;
 
 import javax.swing.JButton;
@@ -14,8 +11,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-
-import interpret.MethodList.MethodChangedListener;
+import javax.swing.JTextField;
 
 @SuppressWarnings("serial")
 public class ObjectFrame extends JFrame {
@@ -23,11 +19,15 @@ public class ObjectFrame extends JFrame {
 
 	private final JPanel methodPanel = new JPanel();
 	private final JPanel methodInnerPanel = new JPanel();
+	private final JPanel searchPanel = new JPanel();
 	private final JScrollPane methodListScrollPane = new JScrollPane();
 	private final MethodList methodList = new MethodList();
 	private final JScrollPane paramTableScrollPane = new JScrollPane();
 	private final ParamTable paramTable = new ParamTable();
 	private final JButton invokeButton = new JButton("Invoke");
+	private final JTextField searchField = new JTextField();
+	private final JButton searchButton = new JButton("Search");
+	private final JButton clearButton = new JButton("Clear");
 
 	private final JPanel fieldPanel = new JPanel();
 	private final JScrollPane fieldsTableScrollPane = new JScrollPane();
@@ -44,20 +44,15 @@ public class ObjectFrame extends JFrame {
 		setupListener();
 	}
 
-	private final MethodChangedListener methodChangedListener = new MethodChangedListener() {
-		@Override
-		public void onChange(Method method) {
-			if (method == null) {
+	private void setupListener() {
+		methodList.addListener((m) -> {
+			if (m == null) {
 				paramTable.setClass((Class<?>[]) null);
 			} else {
-				paramTable.setClass(method.getParameterTypes());
+				paramTable.setClass(m.getParameterTypes());
 			}
-		}
-	};
-
-	private final ActionListener invokeButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent actionEvent) {
+		});
+		invokeButton.addActionListener((e) -> {
 			Method method = methodList.getSelectedMethod();
 			if (method != null) {
 				try {
@@ -67,16 +62,17 @@ public class ObjectFrame extends JFrame {
 					} else {
 						JOptionPane.showMessageDialog(ObjectFrame.this, String.valueOf(returnValue));
 					}
-				} catch (Throwable e) {
-					JOptionPane.showMessageDialog(ObjectFrame.this, e.toString());
+				} catch (Throwable t) {
+					JOptionPane.showMessageDialog(ObjectFrame.this, t.toString());
 				}
 			}
-		}
-	};
+		});
+		searchButton.addActionListener((e) -> {
 
-	private void setupListener() {
-		methodList.addListener(methodChangedListener);
-		invokeButton.addActionListener(invokeButtonListener);
+		});
+		clearButton.addActionListener((e) -> {
+
+		});
 	}
 
 	private void setupLayout() {
@@ -86,14 +82,13 @@ public class ObjectFrame extends JFrame {
 		setLayout(new BorderLayout());
 		getContentPane().add(BorderLayout.CENTER, mainSplitPane);
 		getContentPane().add(BorderLayout.SOUTH, buttonPanel);
+		getContentPane().add(BorderLayout.NORTH, searchPanel);
 
-		// Setup Center area layout
 		mainSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		mainSplitPane.setDividerLocation(300);
 		mainSplitPane.setTopComponent(methodPanel);
 		mainSplitPane.setBottomComponent(fieldPanel);
 
-		// Setup Method Panel layout
 		methodPanel.setLayout(new BorderLayout());
 		methodPanel.add(BorderLayout.NORTH, new JLabel("Method(s)"));
 		methodPanel.add(BorderLayout.CENTER, methodInnerPanel);
@@ -113,7 +108,14 @@ public class ObjectFrame extends JFrame {
 		fieldPanel.add(BorderLayout.CENTER, fieldsTableScrollPane);
 		fieldsTableScrollPane.setViewportView(fieldsTable);
 
-		buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		searchPanel.setLayout(new BorderLayout());
+		searchPanel.add(BorderLayout.NORTH, new JLabel("Method search"));
+		JPanel searchInnerPanel = new JPanel();
+		searchInnerPanel.setLayout(new GridLayout(1, 3));
+		searchInnerPanel.add(searchField);
+		searchInnerPanel.add(searchButton);
+		searchInnerPanel.add(clearButton);
+		searchPanel.add(BorderLayout.CENTER, methodInnerPanel);
 
 		setLocationRelativeTo(null);
 	}

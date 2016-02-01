@@ -3,8 +3,6 @@ package interpret;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.Array;
@@ -18,10 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-
-import interpret.ClassNameField.ClassChangedListener;
-import interpret.ConstructorList.ConstructorChangedListener;
-import interpret.CreatedObjectList.ObjectChangedListener;
 
 @SuppressWarnings("serial")
 public class ClassFrame extends JFrame {
@@ -48,6 +42,8 @@ public class ClassFrame extends JFrame {
 	private final JButton constructButton = new JButton("Create instance");
 	private final JButton showObjectButton = new JButton("Show object");
 
+	private Object selectedObject = null;
+
 	public ClassFrame() {
 		setupLayout();
 		setupListener();
@@ -59,32 +55,40 @@ public class ClassFrame extends JFrame {
 		});
 	}
 
-	private final ClassChangedListener classChangedListener = new ClassChangedListener() {
-		@Override
-		public void onChange(Class<?> class_) {
-			constructorList.setClass(class_);
+	private void setupListener() {
+		classNameField.addClassChangedListener((c) -> {
+			constructorList.setClass(c);
 			constructButton.setEnabled(false);
-		}
-	};
-
-	private final ConstructorChangedListener constructorChangedListener = new ConstructorChangedListener() {
-		@Override
-		public void onChange(Constructor<?> constructor) {
+		});
+		constructorList.addConstructorChangedListener((constructor) -> {
 			paramTable.setClass(constructor == null ? null : constructor.getParameterTypes());
 			constructButton.setEnabled(constructor != null);
-		}
-	};
-
-	private final ActionListener showConstructorButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent actionEvent) {
-			classNameField.updateClass();
-		}
-	};
-
-	private final ActionListener createArrayButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent actionEvent) {
+		});
+		createdList.addListener((object) -> {
+			selectedObject = object;
+			showObjectButton.setEnabled(object != null);
+		});
+		constructButton.addActionListener((e) -> {
+			try {
+				Constructor<?> constructor = constructorList.getSelectedConstructor();
+				Object[] arguments = paramTable.getValues();
+				Object object = ReflectUtils.construct(constructor, arguments);
+				createdList.addObject(object);
+			} catch (Throwable t) {
+				JOptionPane.showMessageDialog(ClassFrame.this, t.toString());
+			}
+		});
+		showConstructorButton.addActionListener((e) -> classNameField.updateClass());
+		showObjectButton.addActionListener((e) -> {
+			if (selectedObject.getClass().isArray()) {
+				ArrayFrame arrayViewer = new ArrayFrame((Object[]) selectedObject);
+				arrayViewer.setVisible(true);
+			} else {
+				ObjectFrame objectViewer = new ObjectFrame(selectedObject);
+				objectViewer.setVisible(true);
+			}
+		});
+		createArrayButton.addActionListener((e) -> {
 			classNameField.updateClass();
 			try {
 				Class<?> cls = classNameField.getClassObject();
@@ -95,34 +99,10 @@ public class ClassFrame extends JFrame {
 				int length = Integer.parseInt(arrayLengthSpinner.getValue().toString());
 				Object[] array = (Object[]) Array.newInstance(cls, length);
 				createdList.addObject(array);
-			} catch (NumberFormatException e) {
+			} catch (NumberFormatException nfe) {
 				JOptionPane.showMessageDialog(ClassFrame.this, "Invalid array length.");
 			}
-		}
-	};
-
-	private final ActionListener constructButtonListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent actionEvent) {
-			try {
-				Constructor<?> constructor = constructorList.getSelectedConstructor();
-				Object[] arguments = paramTable.getValues();
-				Object object = ReflectUtils.construct(constructor, arguments);
-				createdList.addObject(object);
-			} catch (Throwable e) {
-				JOptionPane.showMessageDialog(ClassFrame.this, e.toString());
-			}
-		}
-	};
-
-	private void setupListener() {
-		classNameField.addClassChangedListener(classChangedListener);
-		constructorList.addConstructorChangedListener(constructorChangedListener);
-		createdList.addListener(objectChangedListener);
-		constructButton.addActionListener(constructButtonListener);
-		showConstructorButton.addActionListener(showConstructorButtonListener);
-		showObjectButton.addActionListener(showObjectButtonListener);
-		createArrayButton.addActionListener(createArrayButtonListener);
+		});
 	}
 
 	private void setupLayout() {
@@ -183,29 +163,4 @@ public class ClassFrame extends JFrame {
 
 		setLocationRelativeTo(null);
 	}
-
-	private Object selectedObject = null;
-
-	private ObjectChangedListener objectChangedListener = new ObjectChangedListener() {
-
-		@Override
-		public void onChange(Object object) {
-			selectedObject = object;
-			showObjectButton.setEnabled(object != null);
-		}
-	};
-
-	private ActionListener showObjectButtonListener = new ActionListener() {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			if (selectedObject.getClass().isArray()) {
-				ArrayFrame arrayViewer = new ArrayFrame((Object[]) selectedObject);
-				arrayViewer.setVisible(true);
-			} else {
-				ObjectFrame objectViewer = new ObjectFrame(selectedObject);
-				objectViewer.setVisible(true);
-			}
-		}
-	};
 }

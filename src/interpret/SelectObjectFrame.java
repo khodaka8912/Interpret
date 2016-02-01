@@ -14,10 +14,8 @@ import javax.swing.JScrollPane;
 @SuppressWarnings("serial")
 public class SelectObjectFrame extends JFrame {
 
-	List<Object> createdObjects = CreatedObjects.getList();
 	Set<SelectObjectListener> listeners = new HashSet<>();
-
-	CreatedObjectList createdList = new CreatedObjectList();
+	CreatedObjectList createdList;
 	JPanel createdListPanel = new JPanel();
 	JScrollPane createdListPane = new JScrollPane();
 	JPanel buttonPanel = new JPanel();
@@ -28,6 +26,11 @@ public class SelectObjectFrame extends JFrame {
 	JButton cancelButton = new JButton("Cancel");
 
 	public SelectObjectFrame() {
+		this(null);
+	}
+
+	public SelectObjectFrame(List<Object> createdObjects) {
+		createdList = createdObjects == null ? new CreatedObjectList() : new CreatedObjectList(createdObjects);
 		setupLayout();
 		setupListener();
 	}
@@ -39,7 +42,8 @@ public class SelectObjectFrame extends JFrame {
 	}
 
 	private void setupLayout() {
-		setSize(600, 600);
+		setSize(500, 600);
+		setTitle("Select object");
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout());
 		mainPanel.add(BorderLayout.CENTER, createdListPanel);
