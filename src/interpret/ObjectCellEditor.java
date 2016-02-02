@@ -115,9 +115,9 @@ public class ObjectCellEditor extends AbstractCellEditor implements TableCellRen
 		Object value;
 		if (isNumberClass(type)) {
 			value = ((NumberSpinner) editor).getPrimitiveValue();
-		} else if (type == char.class || type == Character.class) {
+		} else if (type == char.class) {
 			value = ((JTextField) editor).getText().charAt(0);
-		} else if (type == boolean.class || type == Boolean.class) {
+		} else if (type == boolean.class) {
 			value = ((JCheckBox) editor).isSelected();
 		} else if (type.isEnum()) {
 			value = ((EnumComboBox) editor).getSelectedItem();

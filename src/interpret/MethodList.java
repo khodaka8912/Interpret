@@ -38,7 +38,7 @@ public class MethodList extends JList<Method> {
 
 		setCellRenderer((list, value, index, isSelected, hasFocus) -> {
 			String str = filteredMethods[index].toString().replaceAll("java\\.lang\\.", "")
-					.replaceAll(" .+" + filteredMethods[index].getName(), " " + filteredMethods[index]);
+					.replaceAll(" .+" + filteredMethods[index].getName(), " " + filteredMethods[index].getName());
 			JLabel label = new JLabel(str);
 			if (isSelected) {
 				label.setForeground(Color.WHITE);

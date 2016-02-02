@@ -66,7 +66,7 @@ public class FieldTable extends ObjectTable {
 			case 2:
 				return false;
 			case 3:
-				return ReflectUtils.isSettableField(fields[i]);
+				return true;
 			default:
 				throw new AssertionError("");
 			}
@@ -83,6 +83,7 @@ public class FieldTable extends ObjectTable {
 				try {
 					ReflectUtils.setField(object, fields[i], ((TypedValue) value).getValue());
 				} catch (Throwable e) {
+					e.printStackTrace();
 					JOptionPane.showMessageDialog(FieldTable.this,
 							e.getClass().getSimpleName() + ": " + e.getMessage());
 				}
