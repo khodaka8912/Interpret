@@ -2,6 +2,7 @@ package interpret;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.util.List;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
@@ -23,12 +24,18 @@ public class ObjectCellEditor extends AbstractCellEditor implements TableCellRen
 	private Class<?> type;
 	private JComponent editor;
 	private Object selectedValue;
+	private List<Object> createdObjects;
+
+	public ObjectCellEditor(List<Object> createdObjects) {
+		this.createdObjects = createdObjects;
+	}
 
 	@Override
-	public Component getTableCellRendererComponent(JTable table, Object typeValuePair, boolean isSelected,
+	public Component getTableCellRendererComponent(JTable table, Object typedValueObj, boolean isSelected,
 			boolean hasFocus, int row, int column) {
-		final Class<?> type = ((TypedValue) typeValuePair).getType();
-		final Object value = ((TypedValue) typeValuePair).getValue();
+		TypedValue typedValue = (TypedValue) typedValueObj;
+		final Class<?> type = typedValue.getType();
+		final Object value = typedValue.getValue();
 
 		if (isNumberClass(type)) {
 			return new JLabel(String.valueOf(value));
@@ -40,18 +47,17 @@ public class ObjectCellEditor extends AbstractCellEditor implements TableCellRen
 			return jCheckBox;
 		} else if (type.isEnum()) {
 			return new JLabel(String.valueOf(value));
-		} else if (type.isArray()) {
-			return new JButton(String.valueOf(value) + " ...");
 		} else {
-			return new JButton(String.valueOf(value) + " ...");
+			return new JButton(typedValue.getLabelName() + " ...");
 		}
 	}
 
 	@Override
-	public Component getTableCellEditorComponent(JTable table, Object typeValuePair, boolean isSelected, int row,
+	public Component getTableCellEditorComponent(JTable table, Object typedValueObj, boolean isSelected, int row,
 			int column) {
-		this.type = ((TypedValue) typeValuePair).getType();
-		final Object value = ((TypedValue) typeValuePair).getValue();
+		TypedValue typedValue = (TypedValue) typedValueObj;
+		this.type = typedValue.getType();
+		final Object value = typedValue.getValue();
 
 		if (isNumberClass(type)) {
 			editor = new NumberSpinner((Class<? extends Number>) type, (Number) value);
@@ -61,7 +67,7 @@ public class ObjectCellEditor extends AbstractCellEditor implements TableCellRen
 			JCheckBox jCheckBox = new JCheckBox();
 			jCheckBox.setSelected((Boolean) value);
 			jCheckBox.setBackground(Color.white);
-			jCheckBox.addItemListener((e) -> stopCellEditing());
+			jCheckBox.addItemListener(e -> stopCellEditing());
 			editor = jCheckBox;
 		} else if (type.isEnum()) {
 			EnumComboBox jEnumComboBox = new EnumComboBox((Class<? extends Enum<?>>) type, (Enum<?>) value);
@@ -82,10 +88,9 @@ public class ObjectCellEditor extends AbstractCellEditor implements TableCellRen
 			});
 			editor = jEnumComboBox;
 		} else {
-			JButton selectObjectButton = new JButton(
-					value == null ? "null" : value.getClass().getSimpleName() + "#" + value.hashCode() + " ...");
-			selectObjectButton.addActionListener((e) -> {
-				SelectObjectFrame frame = new SelectObjectFrame();
+			JButton selectObjectButton = new JButton(typedValue.getLabelName() + " ...");
+			selectObjectButton.addActionListener(e -> {
+				SelectObjectFrame frame = new SelectObjectFrame(createdObjects);
 				frame.addListener(new SelectObjectListener() {
 					@Override
 					public void onSelect(Object value) {
@@ -114,8 +119,6 @@ public class ObjectCellEditor extends AbstractCellEditor implements TableCellRen
 			value = ((JTextField) editor).getText().charAt(0);
 		} else if (type == boolean.class || type == Boolean.class) {
 			value = ((JCheckBox) editor).isSelected();
-		} else if (type == String.class) {
-			value = ((JTextField) editor).getText();
 		} else if (type.isEnum()) {
 			value = ((EnumComboBox) editor).getSelectedItem();
 		} else if (type.isArray()) {

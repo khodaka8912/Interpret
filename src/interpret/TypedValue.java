@@ -26,6 +26,10 @@ public class TypedValue implements Cloneable {
 		this.value = value;
 	}
 
+	public String getLabelName() {
+		return value == null ? "null" : (type.getSimpleName() + "#" + value.hashCode());
+	}
+
 	@Override
 	public TypedValue clone() {
 		try {

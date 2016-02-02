@@ -1,6 +1,7 @@
 package interpret;
 
 import java.awt.BorderLayout;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -10,11 +11,12 @@ public class ArrayFrame extends JFrame {
 
 	private final Object[] array;
 	private final JScrollPane arraysTableScrollPane = new JScrollPane();
-	private final ArrayTable arraysTable = new ArrayTable();
+	private final ArrayTable arrayTable;
 
-	public ArrayFrame(Object[] array) {
+	public ArrayFrame(Object[] array, List<Object> createdObjects) {
 		this.array = array;
-		arraysTable.setArray(array);
+		arrayTable = new ArrayTable(createdObjects);
+		arrayTable.setArray(array);
 		setupLayout();
 	}
 
@@ -25,7 +27,7 @@ public class ArrayFrame extends JFrame {
 		setLayout(new BorderLayout());
 		getContentPane().add(BorderLayout.CENTER, arraysTableScrollPane);
 
-		arraysTableScrollPane.setViewportView(arraysTable);
+		arraysTableScrollPane.setViewportView(arrayTable);
 
 		setLocationRelativeTo(null);
 	}

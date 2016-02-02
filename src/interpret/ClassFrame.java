@@ -7,6 +7,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -19,6 +21,10 @@ import javax.swing.SpinnerNumberModel;
 
 @SuppressWarnings("serial")
 public class ClassFrame extends JFrame {
+
+	private Object selectedObject = null;
+	private List<Object> createdObjects = new ArrayList<>();
+	private final CreatedObjectList createdList = new CreatedObjectList(createdObjects);
 
 	private final JPanel topGroup = new JPanel();
 	private final JPanel classNamePanel = new JPanel();
@@ -34,15 +40,12 @@ public class ClassFrame extends JFrame {
 	private final ConstructorList constructorList = new ConstructorList();
 	private final JPanel paramTablePanel = new JPanel();
 	private final JScrollPane paramTablePane = new JScrollPane();
-	private final ParamTable paramTable = new ParamTable();
+	private final ParamTable paramTable = new ParamTable(createdObjects);
 
 	private final JPanel createdListPanel = new JPanel();
 	private final JScrollPane createdListPane = new JScrollPane();
-	private final CreatedObjectList createdList = new CreatedObjectList();
 	private final JButton constructButton = new JButton("Create instance");
-	private final JButton showObjectButton = new JButton("Show object");
-
-	private Object selectedObject = null;
+	private final JButton showObjectButton = new JButton("Show Object/Array");
 
 	public ClassFrame() {
 		setupLayout();
@@ -56,19 +59,19 @@ public class ClassFrame extends JFrame {
 	}
 
 	private void setupListener() {
-		classNameField.addClassChangedListener((c) -> {
-			constructorList.setClass(c);
+		classNameField.addClassChangedListener(cls -> {
+			constructorList.setClass(cls);
 			constructButton.setEnabled(false);
 		});
-		constructorList.addConstructorChangedListener((constructor) -> {
+		constructorList.addConstructorChangedListener(constructor -> {
 			paramTable.setClass(constructor == null ? null : constructor.getParameterTypes());
 			constructButton.setEnabled(constructor != null);
 		});
-		createdList.addListener((object) -> {
-			selectedObject = object;
-			showObjectButton.setEnabled(object != null);
+		createdList.addListener(obj -> {
+			selectedObject = obj;
+			showObjectButton.setEnabled(obj != null);
 		});
-		constructButton.addActionListener((e) -> {
+		constructButton.addActionListener(e -> {
 			try {
 				Constructor<?> constructor = constructorList.getSelectedConstructor();
 				Object[] arguments = paramTable.getValues();
@@ -78,17 +81,17 @@ public class ClassFrame extends JFrame {
 				JOptionPane.showMessageDialog(ClassFrame.this, t.toString());
 			}
 		});
-		showConstructorButton.addActionListener((e) -> classNameField.updateClass());
-		showObjectButton.addActionListener((e) -> {
+		showConstructorButton.addActionListener(e -> classNameField.updateClass());
+		showObjectButton.addActionListener(e -> {
 			if (selectedObject.getClass().isArray()) {
-				ArrayFrame arrayViewer = new ArrayFrame((Object[]) selectedObject);
+				ArrayFrame arrayViewer = new ArrayFrame((Object[]) selectedObject, createdObjects);
 				arrayViewer.setVisible(true);
 			} else {
-				ObjectFrame objectViewer = new ObjectFrame(selectedObject);
+				ObjectFrame objectViewer = new ObjectFrame(selectedObject, createdObjects);
 				objectViewer.setVisible(true);
 			}
 		});
-		createArrayButton.addActionListener((e) -> {
+		createArrayButton.addActionListener(e -> {
 			classNameField.updateClass();
 			try {
 				Class<?> cls = classNameField.getClassObject();

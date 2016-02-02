@@ -2,21 +2,22 @@ package interpret;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 @SuppressWarnings("serial")
-public class FieldTable extends JTable {
+public class FieldTable extends ObjectTable {
 
 	private static final String[] COLUMN_NAMES = { "Modifier", "Type", "Name", "Value" };
 
 	private Object object;
 	private Field[] fields = new Field[0];
 
-	public FieldTable() {
+	public FieldTable(List<Object> object) {
+		super(object);
 		setModel(new ArgumentsTableModel());
 		getColumn(COLUMN_NAMES[0]).setCellRenderer(
 				(table, value, isSelected, hasFocus, i, j) -> new JLabel(Modifier.toString(fields[i].getModifiers())));
@@ -24,8 +25,8 @@ public class FieldTable extends JTable {
 				(table, value, isSelected, hasFocus, i, j) -> new JLabel(fields[i].getType().getCanonicalName()));
 		getColumn(COLUMN_NAMES[2])
 				.setCellRenderer((table, value, isSelected, hasFocus, i, j) -> new JLabel(fields[i].getName()));
-		getColumn(COLUMN_NAMES[3]).setCellRenderer(new ObjectCellEditor());
-		getColumn(COLUMN_NAMES[3]).setCellEditor(new ObjectCellEditor());
+		getColumn(COLUMN_NAMES[3]).setCellRenderer(editor);
+		getColumn(COLUMN_NAMES[3]).setCellEditor(editor);
 	}
 
 	public void setObject(Object object) {

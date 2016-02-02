@@ -45,7 +45,7 @@ public class CreatedObjectList extends JList<Object> {
 			return label;
 		});
 
-		addListSelectionListener((e) -> {
+		addListSelectionListener(e -> {
 			for (ObjectChangedListener listener : listeners) {
 				int i = getSelectedIndex();
 				listener.onChange(i == -1 ? null : createdObjects.get(i));

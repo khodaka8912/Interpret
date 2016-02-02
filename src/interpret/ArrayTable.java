@@ -1,5 +1,7 @@
 package interpret;
 
+import java.util.List;
+
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -11,47 +13,19 @@ public class ArrayTable extends JTable {
 
 	private Object[] array;
 
-	public ArrayTable() {
+	public ArrayTable(List<Object> createdObjects) {
 		setModel(new ArraysTableModel());
 		getColumn(COLUMN_NAMES[0])
 				.setCellRenderer((table, value, isSelected, hasFocus, i, j) -> new JLabel(String.valueOf(value)));
-		getColumn(COLUMN_NAMES[1]).setCellRenderer(new ObjectCellEditor());
-		getColumn(COLUMN_NAMES[1]).setCellEditor(new ObjectCellEditor());
+		ObjectCellEditor editor = new ObjectCellEditor(createdObjects);
+		getColumn(COLUMN_NAMES[1]).setCellRenderer(editor);
+		getColumn(COLUMN_NAMES[1]).setCellEditor(editor);
 	}
 
 	public void setArray(Object[] array) {
 		this.array = array;
-
-		// Set default values
-		final Class<?> type = array.getClass().getComponentType();
-		for (int i = 0; i < array.length; i++) {
-			if (type == byte.class || type == Byte.class) {
-				array[i] = (byte) 0;
-			} else if (type == short.class || type == Short.class) {
-				array[i] = (short) 0;
-			} else if (type == int.class || type == Integer.class) {
-				array[i] = 0;
-			} else if (type == long.class || type == Long.class) {
-				array[i] = 0L;
-			} else if (type == float.class || type == Float.class) {
-				array[i] = (float) 0;
-			} else if (type == double.class || type == Double.class) {
-				array[i] = (double) 0;
-			} else if (type == char.class || type == Character.class) {
-				array[i] = ' ';
-			} else if (type == boolean.class || type == Boolean.class) {
-				array[i] = false;
-			} else if (type == String.class) {
-				array[i] = "";
-			} else if (type.isEnum()) {
-				array[i] = null;
-			} else if (type.isArray()) {
-				array[i] = null;
-			} else {
-				array[i] = null;
-			}
-		}
-
+		//
+		// final Class<?> type = array.getClass().getComponentType();
 		updateUI();
 	}
 

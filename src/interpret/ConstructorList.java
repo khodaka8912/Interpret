@@ -35,7 +35,8 @@ public class ConstructorList extends JList<Constructor<?>> {
 		});
 
 		setCellRenderer((list, value, index, isSelected, hasFocus) -> {
-			JLabel label = new JLabel(constructors[index].toString().replaceAll("java\\.lang\\.", ""));
+			JLabel label = new JLabel(
+					constructors[index].toString().replaceAll("java\\.lang\\.", "").replaceAll("public ", ""));
 			if (isSelected) {
 				label.setForeground(Color.WHITE);
 				label.setBackground(Color.GRAY);
@@ -44,7 +45,7 @@ public class ConstructorList extends JList<Constructor<?>> {
 			return label;
 		});
 
-		addListSelectionListener((e) -> {
+		addListSelectionListener(e -> {
 			for (ConstructorChangedListener listener : listeners) {
 				int i = getSelectedIndex();
 				listener.onChange(i == -1 ? null : constructors[i]);

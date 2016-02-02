@@ -1,11 +1,12 @@
 package interpret;
 
+import java.util.List;
+
 import javax.swing.JLabel;
-import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 @SuppressWarnings("serial")
-public class ParamTable extends JTable {
+public class ParamTable extends ObjectTable {
 
 	private final String[] columnNames = { "Type", "Value" };
 
@@ -15,14 +16,14 @@ public class ParamTable extends JTable {
 	private Class<?>[] types = EMPTY_TYPES;
 	private Object[] params = EMPTY_PARAMS;
 
-	public ParamTable() {
+	public ParamTable(List<Object> createdObjects) {
+		super(createdObjects);
 		setModel(new ArgumentTableModel());
 		getColumn(columnNames[0]).setCellRenderer((table, value, isSelected, hasFocus, i, j) -> {
 			return new JLabel(((Class<?>) value).getCanonicalName().replaceAll("java\\.lang\\.", ""));
 		});
-		ObjectCellEditor valueCell = new ObjectCellEditor();
-		getColumn(columnNames[1]).setCellRenderer(valueCell);
-		getColumn(columnNames[1]).setCellEditor(valueCell);
+		getColumn(columnNames[1]).setCellRenderer(editor);
+		getColumn(columnNames[1]).setCellEditor(editor);
 	}
 
 	public void setClass(Class<?>... types) {

@@ -3,6 +3,7 @@ package interpret;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -23,7 +24,7 @@ public class ObjectFrame extends JFrame {
 	private final JScrollPane methodListScrollPane = new JScrollPane();
 	private final MethodList methodList = new MethodList();
 	private final JScrollPane paramTableScrollPane = new JScrollPane();
-	private final ParamTable paramTable = new ParamTable();
+	private final ParamTable paramTable;
 	private final JButton invokeButton = new JButton("Invoke");
 	private final JTextField searchField = new JTextField();
 	private final JButton searchButton = new JButton("Search");
@@ -31,28 +32,24 @@ public class ObjectFrame extends JFrame {
 
 	private final JPanel fieldPanel = new JPanel();
 	private final JScrollPane fieldsTableScrollPane = new JScrollPane();
-	private final FieldTable fieldsTable = new FieldTable();
+	private final FieldTable fieldTable;
 
 	private final JPanel buttonPanel = new JPanel();
 	private final JSplitPane mainSplitPane = new JSplitPane();
 
-	public ObjectFrame(Object object) {
+	public ObjectFrame(Object object, List<Object> createdObjects) {
 		this.object = object;
+		paramTable = new ParamTable(createdObjects);
 		methodList.setClass(object.getClass());
-		fieldsTable.setObject(object);
+		fieldTable = new FieldTable(createdObjects);
+		fieldTable.setObject(object);
 		setupLayout();
 		setupListener();
 	}
 
 	private void setupListener() {
-		methodList.addListener((m) -> {
-			if (m == null) {
-				paramTable.setClass((Class<?>[]) null);
-			} else {
-				paramTable.setClass(m.getParameterTypes());
-			}
-		});
-		invokeButton.addActionListener((e) -> {
+		methodList.addListener(m -> paramTable.setClass(m == null ? (Class<?>[]) null : m.getParameterTypes()));
+		invokeButton.addActionListener(e -> {
 			Method method = methodList.getSelectedMethod();
 			if (method != null) {
 				try {
@@ -67,11 +64,10 @@ public class ObjectFrame extends JFrame {
 				}
 			}
 		});
-		searchButton.addActionListener((e) -> {
-
-		});
-		clearButton.addActionListener((e) -> {
-
+		searchButton.addActionListener(e -> methodList.filter(searchField.getText()));
+		clearButton.addActionListener(e -> {
+			searchField.setText("");
+			methodList.filter(null);
 		});
 	}
 
@@ -106,7 +102,7 @@ public class ObjectFrame extends JFrame {
 		fieldPanel.setLayout(new BorderLayout());
 		fieldPanel.add(BorderLayout.NORTH, new JLabel("Field(s)"));
 		fieldPanel.add(BorderLayout.CENTER, fieldsTableScrollPane);
-		fieldsTableScrollPane.setViewportView(fieldsTable);
+		fieldsTableScrollPane.setViewportView(fieldTable);
 
 		searchPanel.setLayout(new BorderLayout());
 		searchPanel.add(BorderLayout.NORTH, new JLabel("Method search"));
@@ -115,7 +111,7 @@ public class ObjectFrame extends JFrame {
 		searchInnerPanel.add(searchField);
 		searchInnerPanel.add(searchButton);
 		searchInnerPanel.add(clearButton);
-		searchPanel.add(BorderLayout.CENTER, methodInnerPanel);
+		searchPanel.add(BorderLayout.CENTER, searchInnerPanel);
 
 		setLocationRelativeTo(null);
 	}
