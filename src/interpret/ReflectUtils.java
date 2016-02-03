@@ -40,13 +40,12 @@ public class ReflectUtils {
 
 	public static void setField(Object target, Field field, Object value) throws Throwable {
 		field.setAccessible(true);
-		int modifiers = field.getModifiers();
-		if (Modifier.isFinal(modifiers)) {
+		if (Modifier.isFinal(field.getModifiers())) {
 			Field modifiersField = field.getClass().getDeclaredField("modifiers");
 			modifiersField.setAccessible(true);
 			modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
 		}
-		if (Modifier.isStatic(modifiers)) {
+		if (Modifier.isStatic(field.getModifiers())) {
 			field.set(null, value);
 		} else {
 			field.set(target, value);

@@ -16,15 +16,17 @@ public class FieldTable extends ObjectTable {
 	private Object object;
 	private Field[] fields = new Field[0];
 
-	public FieldTable(List<Object> object) {
-		super(object);
+	public FieldTable(List<Object> createdObjects) {
+		super(createdObjects);
 		setModel(new ArgumentsTableModel());
 		getColumn(COLUMN_NAMES[0]).setCellRenderer(
-				(table, value, isSelected, hasFocus, i, j) -> new JLabel(Modifier.toString(fields[i].getModifiers())));
+				(table, value, isSelected, hasFocus, i, j) -> new JLabel(Modifier
+						.toString(fields[i].getModifiers())));
 		getColumn(COLUMN_NAMES[1]).setCellRenderer(
-				(table, value, isSelected, hasFocus, i, j) -> new JLabel(fields[i].getType().getCanonicalName()));
-		getColumn(COLUMN_NAMES[2])
-				.setCellRenderer((table, value, isSelected, hasFocus, i, j) -> new JLabel(fields[i].getName()));
+				(table, value, isSelected, hasFocus, i, j) -> new JLabel(fields[i].getType()
+						.getCanonicalName()));
+		getColumn(COLUMN_NAMES[2]).setCellRenderer(
+				(table, value, isSelected, hasFocus, i, j) -> new JLabel(fields[i].getName()));
 		getColumn(COLUMN_NAMES[3]).setCellRenderer(editor);
 		getColumn(COLUMN_NAMES[3]).setCellEditor(editor);
 	}
@@ -73,19 +75,20 @@ public class FieldTable extends ObjectTable {
 		}
 
 		@Override
-		public void setValueAt(Object value, int i, int j) {
+		public void setValueAt(Object obj, int i, int j) {
 			switch (j) {
 			case 0:
 			case 1:
 			case 2:
 				break;
 			case 3:
+				System.out.println(Thread.currentThread().getName());
 				try {
-					ReflectUtils.setField(object, fields[i], ((TypedValue) value).getValue());
+					ReflectUtils.setField(object, fields[i], ((TypedValue) obj).getValue());
 				} catch (Throwable e) {
 					e.printStackTrace();
-					JOptionPane.showMessageDialog(FieldTable.this,
-							e.getClass().getSimpleName() + ": " + e.getMessage());
+					JOptionPane.showMessageDialog(FieldTable.this, e.getClass().getSimpleName()
+							+ ": " + e.getMessage());
 				}
 				break;
 			default:
@@ -104,7 +107,8 @@ public class FieldTable extends ObjectTable {
 				return fields[i].getName();
 			case 3:
 				try {
-					return new TypedValue(fields[i].getType(), ReflectUtils.getField(object, fields[i]));
+					return new TypedValue(fields[i].getType(), ReflectUtils.getField(object,
+							fields[i]));
 				} catch (Throwable e) {
 					e.printStackTrace();
 				}
