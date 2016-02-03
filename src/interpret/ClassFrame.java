@@ -117,7 +117,7 @@ public class ClassFrame extends JFrame {
 		getContentPane().add(BorderLayout.CENTER, mainPanel);
 		// getContentPane().add(BorderLayout.SOUTH, createdListPanel);
 
-		// topGroup.setLayout(new BorderLayout());
+//		topGroup.setLayout(new GridLayout(1, 2));
 		topGroup.add(classNamePanel);
 		topGroup.add(arrayPanel);
 

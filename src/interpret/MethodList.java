@@ -95,6 +95,7 @@ public class MethodList extends JList<Method> {
 			filteredMethods = (Method[]) Arrays.stream(methods).filter(m -> m.getName().contains(text))
 					.toArray(i -> new Method[i]);
 		}
+		clearSelection();
 		updateUI();
 	}
 }
