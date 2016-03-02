@@ -1,5 +1,6 @@
 package interpret;
 
+import java.lang.reflect.Array;
 import java.util.List;
 
 import javax.swing.JLabel;
@@ -12,18 +13,21 @@ public class ArrayTable extends ObjectTable {
 
 	private static final String[] COLUMN_NAMES = { "Index", "Value" };
 
-	private Object[] array;
+	private Object array;
 
 	public ArrayTable(List<Object> createdObjects) {
 		super(createdObjects);
 		setModel(new ArraysTableModel());
-		getColumn(COLUMN_NAMES[0])
-				.setCellRenderer((table, value, isSelected, hasFocus, i, j) -> new JLabel(String.valueOf(value)));
+		getColumn(COLUMN_NAMES[0]).setCellRenderer(
+				(table, value, isSelected, hasFocus, i, j) -> new JLabel(String.valueOf(value)));
 		getColumn(COLUMN_NAMES[1]).setCellRenderer(editor);
 		getColumn(COLUMN_NAMES[1]).setCellEditor(editor);
 	}
 
-	public void setArray(Object[] array) {
+	public void setArray(Object array) {
+		if (!array.getClass().isArray()) {
+			throw new IllegalArgumentException("param 'array' is not array object.");
+		}
 		this.array = array;
 		updateUI();
 	}
@@ -32,7 +36,7 @@ public class ArrayTable extends ObjectTable {
 
 		@Override
 		public int getRowCount() {
-			return array.length;
+			return Array.getLength(array);
 		}
 
 		@Override
@@ -64,11 +68,11 @@ public class ArrayTable extends ObjectTable {
 				break;
 			case 1:
 				try {
-					array[i] = ((TypedValue) value).getValue();					
+					Array.set(array, i, ((TypedValue) value).getValue());
 				} catch (ArrayStoreException e) {
 					e.printStackTrace();
-					JOptionPane.showMessageDialog(ArrayTable.this,
-							e.getClass().getSimpleName() + ": " + e.getMessage());					
+					JOptionPane.showMessageDialog(ArrayTable.this, e.getClass().getSimpleName()
+							+ ": " + e.getMessage());
 				}
 				break;
 			default:
@@ -82,7 +86,7 @@ public class ArrayTable extends ObjectTable {
 			case 0:
 				return i;
 			case 1:
-				return new TypedValue(array.getClass().getComponentType(), array[i]);
+				return new TypedValue(array.getClass().getComponentType(), Array.get(array, i));
 			default:
 				throw new AssertionError("");
 			}

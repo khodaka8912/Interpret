@@ -31,7 +31,8 @@ public class ClassFrame extends JFrame {
 	private final ClassNameField classNameField = new ClassNameField();
 	private final JButton showConstructorButton = new JButton("Show constructors");
 	private final JPanel arrayPanel = new JPanel();
-	private final JSpinner arrayLengthSpinner = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
+	private final JSpinner arrayLengthSpinner = new JSpinner(new SpinnerNumberModel(0, 0,
+			Integer.MAX_VALUE, 1));
 	private final JButton createArrayButton = new JButton("Create Array");
 
 	private final JPanel mainPanel = new JPanel();
@@ -45,20 +46,16 @@ public class ClassFrame extends JFrame {
 	private final JPanel createdListPanel = new JPanel();
 	private final JScrollPane createdListPane = new JScrollPane();
 	private final JButton constructButton = new JButton("Create instance");
-	private final JButton showObjectButton = new JButton("Show Object/Array");
+	private final JButton showObjectButton = new JButton("Show Object");
+	private final JButton editArrayButton = new JButton("Edit Array");
 
 	public ClassFrame() {
-		setupLayout();
-		setupListener();
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent windowEvent) {
-				System.exit(0);
-			}
-		});
+		setupLayouts();
+		setupListeners();
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 
-	private void setupListener() {
+	private void setupListeners() {
 		classNameField.addClassChangedListener(cls -> {
 			constructorList.setClass(cls);
 			constructButton.setEnabled(false);
@@ -70,6 +67,7 @@ public class ClassFrame extends JFrame {
 		createdList.addListener(obj -> {
 			selectedObject = obj;
 			showObjectButton.setEnabled(obj != null);
+			editArrayButton.setEnabled(obj != null && obj.getClass().isArray());
 		});
 		constructButton.addActionListener(e -> {
 			try {
@@ -83,24 +81,32 @@ public class ClassFrame extends JFrame {
 		});
 		showConstructorButton.addActionListener(e -> classNameField.updateClass());
 		showObjectButton.addActionListener(e -> {
-			if (selectedObject.getClass().isArray()) {
-				ArrayFrame arrayViewer = new ArrayFrame((Object[]) selectedObject, createdObjects);
-				arrayViewer.setVisible(true);
-			} else {
+//			if (selectedObject.getClass().isArray()) {
+//				ArrayFrame arrayViewer = new ArrayFrame(selectedObject, createdObjects);
+//				arrayViewer.setVisible(true);
+//			} else {
 				ObjectFrame objectViewer = new ObjectFrame(selectedObject, createdObjects);
 				objectViewer.setVisible(true);
+//			}
+		});
+		editArrayButton.addActionListener(e -> {
+			if (!selectedObject.getClass().isArray()) {
+				return;
 			}
+			ArrayFrame arrayViewer = new ArrayFrame(selectedObject, createdObjects);
+			arrayViewer.setVisible(true);
 		});
 		createArrayButton.addActionListener(e -> {
 			classNameField.updateClass();
 			try {
 				Class<?> cls = classNameField.getClassObject();
 				if (cls == null) {
+					
 					JOptionPane.showMessageDialog(ClassFrame.this, "Class not found.");
 					return;
 				}
 				int length = Integer.parseInt(arrayLengthSpinner.getValue().toString());
-				Object[] array = (Object[]) Array.newInstance(cls, length);
+				Object array = Array.newInstance(cls, length);
 				createdList.addObject(array);
 			} catch (NumberFormatException nfe) {
 				JOptionPane.showMessageDialog(ClassFrame.this, "Invalid array length.");
@@ -108,7 +114,7 @@ public class ClassFrame extends JFrame {
 		});
 	}
 
-	private void setupLayout() {
+	private void setupLayouts() {
 		setTitle("Interpret");
 		setSize(800, 600);
 
@@ -117,7 +123,7 @@ public class ClassFrame extends JFrame {
 		getContentPane().add(BorderLayout.CENTER, mainPanel);
 		// getContentPane().add(BorderLayout.SOUTH, createdListPanel);
 
-//		topGroup.setLayout(new GridLayout(1, 2));
+		// topGroup.setLayout(new GridLayout(1, 2));
 		topGroup.add(classNamePanel);
 		topGroup.add(arrayPanel);
 
@@ -161,7 +167,12 @@ public class ClassFrame extends JFrame {
 		createdListPanel.setLayout(new BorderLayout());
 		createdListPanel.add(BorderLayout.NORTH, new JLabel("Created Object(s)"));
 		createdListPanel.add(BorderLayout.CENTER, createdListPane);
-		createdListPanel.add(BorderLayout.SOUTH, showObjectButton);
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(showObjectButton);
+		buttonPanel.add(editArrayButton);
+		showObjectButton.setEnabled(false);
+		editArrayButton.setEnabled(false);
+		createdListPanel.add(BorderLayout.SOUTH, buttonPanel);
 		createdListPane.setViewportView(createdList);
 
 		setLocationRelativeTo(null);

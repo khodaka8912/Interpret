@@ -9,11 +9,14 @@ import javax.swing.JScrollPane;
 @SuppressWarnings("serial")
 public class ArrayFrame extends JFrame {
 
-	private final Object[] array;
+	private final Object array;
 	private final JScrollPane arraysTableScrollPane = new JScrollPane();
 	private final ArrayTable arrayTable;
 
-	public ArrayFrame(Object[] array, List<Object> createdObjects) {
+	public ArrayFrame(Object array, List<Object> createdObjects) {
+		if (!array.getClass().isArray()) {
+			throw new IllegalArgumentException("param 'array' is not array object.");
+		}
 		this.array = array;
 		arrayTable = new ArrayTable(createdObjects);
 		arrayTable.setArray(array);

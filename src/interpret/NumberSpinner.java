@@ -23,9 +23,9 @@ public class NumberSpinner extends JSpinner {
 		} else if (numberType == long.class || numberType == Long.class) {
 			model = new SpinnerNumberModel(initialValue.longValue(), Long.MIN_VALUE, Long.MAX_VALUE, 1);
 		} else if (numberType == float.class || numberType == Float.class) {
-			model = new SpinnerNumberModel(initialValue.floatValue(), 0, 0, 1);
+			model = new SpinnerNumberModel(initialValue.floatValue(), -Float.MAX_VALUE, Float.MAX_VALUE, 0.1);
 		} else if (numberType == double.class || numberType == Double.class) {
-			model = new SpinnerNumberModel(initialValue.doubleValue(), 0, 0, 1);
+			model = new SpinnerNumberModel(initialValue.doubleValue(), -Double.MAX_VALUE, Double.MAX_VALUE, 0.1);
 		} else {
 			throw new IllegalArgumentException("type must be primitive or wrapper");
 		}
